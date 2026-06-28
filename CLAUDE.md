@@ -1,11 +1,17 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+このファイルは、Claude Code (claude.ai/code) がこのリポジトリで作業するときのガイドです。
 
-## Project Overview
+## Claudeへの指示
 
-This is an ERP (Enterprise Resource Planning) application designed to be used on smartphones ("ERPをスマホで行うためのアプリ"). The project is in its initial state — no source code, tooling, or architecture has been set up yet.
+- **言語**: 常に日本語で返答すること
+- **トーン**: フランクで親しみやすい感じで話すこと（「〜です」「〜ます」より「〜だよ」「〜だね」くらいのノリ）
+- **説明スタイル**: プログラミング初心者にも分かるように、専門用語を使うときは必ず一言説明を添えること
 
-## Current State
+## プロジェクト概要
 
-The repository contains only a README. Before development begins, the technology stack, build system, and project structure need to be decided and initialized. Update this file once those decisions are made and the scaffolding is in place.
+スマートフォンで使えるERP（Enterprise Resource Planning = 会社の業務を一元管理するシステム）アプリを作るプロジェクトだよ。
+
+## 現状
+
+まだコードが一切ない、スタートラインの状態。技術スタック（どの言語やフレームワークを使うか）や、ファイル構成がまだ決まっていないから、それが決まったらこのファイルも更新してね。
