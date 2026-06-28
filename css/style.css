@@ -55,10 +55,37 @@ html, body {
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .view-header h1 {
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.3px;
+}
+
+.update-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--card2);
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px 6px 8px;
+  color: var(--subtext);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.update-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 .view-header h2 {
@@ -461,6 +488,31 @@ html, body {
   color: var(--accent);
   font-size: 14px;
   margin-left: auto;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--subtext);
+  display: flex;
+  align-items: center;
+  opacity: 0.5;
+  min-width: 32px;
+  min-height: 32px;
+  justify-content: center;
+}
+
+.delete-btn:active {
+  opacity: 1;
+  color: #e74c3c;
+}
+
+.delete-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
 }
 
 .entry-detail {
