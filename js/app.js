@@ -25,11 +25,11 @@ function renderHome() {
   document.getElementById('streak-days').textContent = streak;
 
   const MSGS = [
-    '今日も練習を積もう。記録するだけで+1点だよ。',
-    '不快感が残っていても成功。感覚を消すことが目的じゃない。',
-    '強迫行為をしなかった瞬間が、脳を変えていくんだよ。',
-    '完璧じゃなくていい。今日も記録できたなら前進してる。',
-    '不快なまま生活に戻れた。それが一番価値ある行動だよ。',
+    '今日も練習を積み重ねましょう。記録するだけで +1点 加算されます。',
+    '不快感が残っていても、それは成功です。感覚を消すことが目的ではありません。',
+    '強迫行為をしなかった瞬間が、少しずつ脳を変えていきます。',
+    '完璧でなくて大丈夫です。記録できた分だけ、着実に前進しています。',
+    '不快感があるまま生活に戻れました。それが最も価値のある行動です。',
   ];
   const idx = score === 0 ? 0 : (Math.floor(Date.now() / 300000) % (MSGS.length - 1)) + 1;
   document.getElementById('home-message').textContent = MSGS[idx];
@@ -155,7 +155,7 @@ function renderHistory() {
   const container = document.getElementById('history-list');
 
   if (all.length === 0) {
-    container.innerHTML = '<p class="empty-msg">まだ記録がないよ。<br>記録するだけで+1点！</p>';
+    container.innerHTML = '<p class="empty-msg">まだ記録がありません。<br>記録するだけで +1点 加算されます。</p>';
     return;
   }
 
