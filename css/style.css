@@ -8,6 +8,7 @@
   --subtext: #8899aa;
   --success: #2ecc71;
   --nav-h: 64px;
+  --safe-t: env(safe-area-inset-top, 44px);
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
@@ -31,7 +32,7 @@ html, body {
 
 #app {
   position: fixed;
-  top: 0;
+  top: var(--safe-t);
   left: 0;
   right: 0;
   bottom: calc(var(--nav-h) + var(--safe-b));
