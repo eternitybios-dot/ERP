@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="練習帳">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+  <title>反応しない練習帳</title>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ══ ホーム ══════════════════════════════════════ -->
+  <div id="view-home" class="view">
+    <div class="view-header">
+      <h1>反応しない練習帳</h1>
+    </div>
+    <div class="view-body">
+      <div class="score-card">
+        <div class="score-label">今日の練習点</div>
+        <div class="score-value">
+          <span id="today-score">0</span><span class="score-unit">点</span>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span id="today-count" class="stat-num">0</span>
+          <span class="stat-lbl">記録回数</span>
+        </div>
+        <div class="stat-item">
+          <span id="no-reaction-count" class="stat-num">0</span>
+          <span class="stat-lbl">反応しなかった</span>
+        </div>
+        <div class="stat-item">
+          <span id="streak-days" class="stat-num">0</span>
+          <span class="stat-lbl">連続日数</span>
+        </div>
+      </div>
+
+      <div class="home-message" id="home-message"></div>
+
+      <button id="home-record-btn" class="btn btn-primary" style="margin-bottom:12px">
+        記録する
+      </button>
+
+      <div class="timer-section">
+        <button id="timer-btn" class="btn btn-secondary">⏱ 3分タイマー開始</button>
+        <div id="timer-display" class="timer-display"></div>
+        <div id="timer-done" class="timer-done">よく耐えた！記録してみよう 👊</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 記録 ════════════════════════════════════════ -->
+  <div id="view-record" class="view">
+    <div class="view-header">
+      <h2>記録する</h2>
+    </div>
+    <div class="view-body scrollable">
+      <div class="pre-record-msg">
+        正確じゃなくていい。だいたいでOK。<br>
+        目的は安心することじゃなくて、練習を積むこと。
+      </div>
+
+      <form id="record-form">
+
+        <!-- 不快度 -->
+        <div class="form-group">
+          <label class="form-label">今の不快度</label>
+          <div class="slider-row">
+            <input type="range" id="discomfort-slider" class="slider" min="0" max="100" value="50">
+            <span id="discomfort-value" class="slider-val">50</span>
+          </div>
+        </div>
+
+        <!-- 強迫行為したい度 -->
+        <div class="form-group">
+          <label class="form-label">強迫行為したい度</label>
+          <div class="slider-row">
+            <input type="range" id="urge-slider" class="slider" min="0" max="100" value="50">
+            <span id="urge-value" class="slider-val">50</span>
+          </div>
+        </div>
+
+        <!-- 場面 -->
+        <div class="form-group">
+          <label class="form-label">場面</label>
+          <div class="chip-group single" id="situation-chips">
+            <div class="chip" data-value="仕事">仕事</div>
+            <div class="chip" data-value="運転">運転</div>
+            <div class="chip" data-value="家">家</div>
+            <div class="chip" data-value="風呂">風呂</div>
+            <div class="chip" data-value="寝る前">寝る前</div>
+            <div class="chip" data-value="その他">その他</div>
+          </div>
+        </div>
+
+        <!-- トリガー -->
+        <div class="form-group">
+          <label class="form-label">トリガー（複数OKだよ）</label>
+          <div class="chip-group multi" id="trigger-chips">
+            <div class="chip" data-value="汚染感">汚染感</div>
+            <div class="chip" data-value="感情汚染">感情汚染</div>
+            <div class="chip" data-value="記憶映像">記憶映像</div>
+            <div class="chip" data-value="身体感覚">身体感覚</div>
+            <div class="chip" data-value="打ち消し欲求">打ち消し欲求</div>
+            <div class="chip" data-value="確認欲求">確認欲求</div>
+            <div class="chip" data-value="回数・儀式">回数・儀式</div>
+          </div>
+        </div>
+
+        <!-- 反応 -->
+        <div class="form-group">
+          <label class="form-label">実際にどうしたか</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="reaction" value="しなかった" checked>
+              <span>しなかった <span class="pts">+15点</span></span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="reaction" value="少しした">
+              <span>少しした</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="reaction" value="した">
+              <span>した</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 我慢時間 -->
+        <div class="form-group">
+          <label class="form-label">我慢できた時間</label>
+          <div class="chip-group single" id="endurance-chips">
+            <div class="chip" data-value="0秒">0秒</div>
+            <div class="chip" data-value="10秒">10秒 <small>+2</small></div>
+            <div class="chip" data-value="1分">1分 <small>+5</small></div>
+            <div class="chip" data-value="3分">3分 <small>+8</small></div>
+            <div class="chip" data-value="10分">10分 <small>+12</small></div>
+            <div class="chip" data-value="放置成功">放置成功 <small>+15</small></div>
+          </div>
+        </div>
+
+        <!-- ボーナス行動 -->
+        <div class="form-group">
+          <label class="form-label">ボーナス行動（当てはまるもの全部）</label>
+          <div class="chip-group multi" id="bonus-chips">
+            <div class="chip" data-value="不快なまま生活に戻れた">不快なまま生活に戻れた <small>+20</small></div>
+            <div class="chip" data-value="確認・安心探しをしなかった">確認・安心探しをしなかった <small>+20</small></div>
+            <div class="chip" data-value="打ち消しイメージをしなかった">打ち消しイメージをしなかった <small>+15</small></div>
+          </div>
+        </div>
+
+        <!-- メモ -->
+        <div class="form-group">
+          <label class="form-label">メモ（任意・短く）</label>
+          <textarea id="memo-input" class="memo-input" rows="2" maxlength="100"
+            placeholder="一言だけ（長く書かなくていいよ）"></textarea>
+          <p class="memo-hint">書きすぎると反芻になりやすいから、短くでOK</p>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="margin-bottom:32px">
+          記録する ✓
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ 履歴 ════════════════════════════════════════ -->
+  <div id="view-history" class="view">
+    <div class="view-header">
+      <h2>履歴</h2>
+    </div>
+    <div class="view-body scrollable" id="history-list"></div>
+  </div>
+
+  <!-- ══ グラフ ═══════════════════════════════════════ -->
+  <div id="view-graph" class="view">
+    <div class="view-header">
+      <h2>グラフ</h2>
+    </div>
+    <div class="view-body">
+      <div class="chart-wrap">
+        <canvas id="chart-scores"></canvas>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart-reactions"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /#app -->
+
+<!-- 記録完了フィードバック -->
+<div id="record-feedback" class="record-feedback">
+  <div class="feedback-score" id="feedback-score"></div>
+  <div class="feedback-msgs">
+    <p>不快感が残っていても成功。</p>
+    <p>記録した時点で前進。</p>
+    <p>今から普段の行動に戻ろう。</p>
+  </div>
+</div>
+
+<!-- ボトムナビ -->
+<nav class="bottom-nav">
+  <button class="nav-btn" data-view="home">
+    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>ホーム</span>
+  </button>
+  <button class="nav-btn" data-view="record">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+    <span>記録</span>
+  </button>
+  <button class="nav-btn" data-view="history">
+    <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    <span>履歴</span>
+  </button>
+  <button class="nav-btn" data-view="graph">
+    <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
+    <span>グラフ</span>
+  </button>
+</nav>
+
+<script src="js/storage.js"></script>
+<script src="js/scoring.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
