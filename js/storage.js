@@ -51,9 +51,14 @@ const Storage = (() => {
     return streak;
   }
 
+  function deleteById(id) {
+    const records = getAll().filter(r => r.id !== id);
+    localStorage.setItem(KEY, JSON.stringify(records));
+  }
+
   function clearAll() {
     localStorage.removeItem(KEY);
   }
 
-  return { getAll, save, getToday, getLast7Days, getStreakDays, clearAll };
+  return { getAll, save, getToday, getLast7Days, getStreakDays, deleteById, clearAll };
 })();

@@ -183,6 +183,9 @@ function renderHistory() {
                 <span class="entry-time">${r.timestamp.split('T')[1].slice(0,5)}</span>
                 <span class="entry-reaction${r.reaction === 'しなかった' ? ' good' : ''}">${r.reaction}</span>
                 <span class="entry-score">+${r.score}点</span>
+                <button class="delete-btn" onclick="deleteRecord('${r.id}')" aria-label="削除">
+                  <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                </button>
               </div>
               <div class="entry-detail">
                 不快度 ${r.discomfortLevel}
@@ -198,6 +201,22 @@ function renderHistory() {
 
 function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function deleteRecord(id) {
+  if (!confirm('この記録を削除しますか？')) return;
+  Storage.deleteById(id);
+  renderHistory();
+  renderHome();
+}
+
+// ── アプリ更新 ──────────────────────────────────────
+function forceUpdate() {
+  caches.keys()
+    .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+    .then(() => navigator.serviceWorker?.getRegistrations() || Promise.resolve([]))
+    .then(regs => Promise.all(regs.map(r => r.unregister())))
+    .then(() => location.reload(true));
 }
 
 // ── 初期化 ─────────────────────────────────────────
