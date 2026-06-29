@@ -105,9 +105,6 @@ function initForms() {
   document.getElementById('form-compulsion').addEventListener('submit', e => {
     e.preventDefault(); submitCompulsion();
   });
-  document.getElementById('form-tic').addEventListener('submit', e => {
-    e.preventDefault(); submitTic();
-  });
 }
 
 function showCrGuide(movement) {
@@ -144,23 +141,40 @@ function submitCompulsion() {
   resetForms();
 }
 
-function submitTic() {
+// クセ：動きを選んで結果を1タップ → 即記録（気づきは常に加点）
+function logTic(kind) {
+  const OUTCOME = {
+    placed:  { competing: 'できた',     urgePassed: true  },
+    partial: { competing: '少しできた', urgePassed: false },
+    noticed: { competing: '出てしまった', urgePassed: false },
+  }[kind];
+
+  // 詳細パネルを開いているときだけ強さ・メモを取り込む
+  const detailOpen = document.getElementById('tic-detail').style.display !== 'none';
   const rec = {
     id: `${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
     timestamp: new Date().toISOString(),
     type: 'tic',
     movement: selectedSingle('movement-chips') || 'その他',
-    urgeLevel: parseInt(document.getElementById('tic-urge-slider').value),
-    awareness: selectedSingle('awareness-chips') === 'yes',
-    competing: selectedSingle('competing-chips') || '出てしまった',
-    urgePassed: selectedSingle('passed-chips') === 'yes',
-    memo: document.getElementById('memo-t').value.trim().slice(0, 100),
+    urgeLevel: detailOpen ? parseInt(document.getElementById('tic-urge-slider').value) : null,
+    awareness: true, // 記録できた＝前駆衝動に気づけている
+    competing: OUTCOME.competing,
+    urgePassed: OUTCOME.urgePassed,
+    memo: detailOpen ? document.getElementById('memo-t').value.trim().slice(0, 100) : '',
     score: 0,
   };
   rec.score = Scoring.calculate(rec);
   Storage.save(rec);
   showFeedback(rec.score);
   resetForms();
+}
+
+function toggleTicDetail() {
+  const panel = document.getElementById('tic-detail');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  document.getElementById('tic-detail-toggle').textContent =
+    open ? '− 強さ・メモを閉じる' : '＋ 強さ・メモを追加（任意）';
 }
 
 function showFeedback(score) {
@@ -181,6 +195,8 @@ function resetForms() {
   document.getElementById('cr-guide').style.display = 'none';
   document.getElementById('memo-c').value = '';
   document.getElementById('memo-t').value = '';
+  const detail = document.getElementById('tic-detail');
+  if (detail && detail.style.display !== 'none') toggleTicDetail();
 }
 
 // ══ 前回の引き継ぎ ═══════════════════════════════════
@@ -204,12 +220,9 @@ function prefillFromLatest() {
   const r = Storage.getLatest(recordType);
   if (!r) return;
   if (recordType === 'tic') {
+    // 動きだけ引き継ぐ（結果はその場でタップ）
     setSingle('movement-chips', r.movement);
     if (r.movement) showCrGuide(r.movement);
-    setSlider('tic-urge', r.urgeLevel);
-    setSingle('awareness-chips', r.awareness ? 'yes' : 'no');
-    setSingle('competing-chips', r.competing);
-    setSingle('passed-chips', r.urgePassed ? 'yes' : 'no');
   } else {
     setSlider('discomfort', r.discomfortLevel);
     setSlider('urge', r.urgeLevel);

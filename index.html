@@ -191,14 +191,14 @@
         <button type="submit" class="btn btn-primary submit-btn">記録する</button>
       </form>
 
-      <!-- ───── クセ・チック（HRT） ───── -->
-      <form id="form-tic" class="record-form" style="display:none">
+      <!-- ───── クセ・チック（HRT）───── 動きを選んで結果を1タップ -->
+      <form id="form-tic" class="record-form" style="display:none" onsubmit="return false">
         <div class="pre-record-msg lav">
-          動きを止めるのではなく、<b>ムズムズ（前駆衝動）に気づいて別の動きに置き換える</b>練習です。気づけただけでも前進です。
+          動きを止めるのではなく、<b>ムズムズに気づいて別の動きに置き換える</b>練習。気づけただけでも前進です。
         </div>
 
         <div class="form-group">
-          <label class="form-label">どの動き？</label>
+          <label class="form-label">① どの動き？</label>
           <div class="chip-group single" id="movement-chips">
             <div class="chip" data-value="目をパチパチ">目をパチパチ</div>
             <div class="chip" data-value="鼻息を強く吐く">鼻息を強く吐く</div>
@@ -216,45 +216,42 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">直前のムズムズ（前駆衝動）の強さ<span class="lbl-scale">／10</span></label>
-          <div class="slider-row">
-            <input type="range" id="tic-urge-slider" class="slider lav" min="0" max="10" value="5" step="1">
-            <span id="tic-urge-value" class="slider-val lav">5</span>
+          <label class="form-label">② どうなった？<span class="lbl-hint">タップで記録完了</span></label>
+          <div class="outcome-list">
+            <button type="button" class="outcome-btn oc-good" onclick="logTic('placed')">
+              <span class="oc-emoji">🌿</span>
+              <span class="oc-text"><b>別の動きに置き換えられた</b><small>拮抗反応で衝動の波をやり過ごせた</small></span>
+              <span class="oc-pts">+31</span>
+            </button>
+            <button type="button" class="outcome-btn oc-mid" onclick="logTic('partial')">
+              <span class="oc-emoji">🙂</span>
+              <span class="oc-text"><b>少し・途中まで置き換えられた</b><small>完全じゃなくても十分な前進</small></span>
+              <span class="oc-pts">+13</span>
+            </button>
+            <button type="button" class="outcome-btn oc-aware" onclick="logTic('noticed')">
+              <span class="oc-emoji">👀</span>
+              <span class="oc-text"><b>出てしまった…でもムズムズに気づけた</b><small>気づきはHRTの土台。立派な一歩</small></span>
+              <span class="oc-pts">+6</span>
+            </button>
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">そのムズムズに気づけた？</label>
-          <div class="chip-group single big" id="awareness-chips">
-            <div class="chip" data-value="yes">気づけた <small>+5</small></div>
-            <div class="chip" data-value="no">気づけなかった</div>
+        <button type="button" class="detail-toggle" id="tic-detail-toggle" onclick="toggleTicDetail()">
+          ＋ 強さ・メモを追加（任意）
+        </button>
+        <div id="tic-detail" class="tic-detail" style="display:none">
+          <div class="form-group">
+            <label class="form-label">直前のムズムズの強さ<span class="lbl-scale">／10</span></label>
+            <div class="slider-row">
+              <input type="range" id="tic-urge-slider" class="slider lav" min="0" max="10" value="5" step="1">
+              <span id="tic-urge-value" class="slider-val lav">5</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">メモ<span class="lbl-hint">任意・短く</span></label>
+            <textarea id="memo-t" class="memo-input" rows="2" maxlength="100" placeholder="一言だけ"></textarea>
           </div>
         </div>
-
-        <div class="form-group">
-          <label class="form-label">拮抗反応（別の動き）はできた？</label>
-          <div class="chip-group single big" id="competing-chips">
-            <div class="chip" data-value="できた">できた <small>+15</small></div>
-            <div class="chip" data-value="少しできた">少しできた <small>+7</small></div>
-            <div class="chip" data-value="出てしまった">出てしまった</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">衝動の波はどうなった？</label>
-          <div class="chip-group single big" id="passed-chips">
-            <div class="chip" data-value="yes">やり過ごせた <small>+10</small></div>
-            <div class="chip" data-value="no">まだ残っている</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">メモ<span class="lbl-hint">任意・短く</span></label>
-          <textarea id="memo-t" class="memo-input" rows="2" maxlength="100"
-            placeholder="一言だけ"></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary submit-btn lav">記録する</button>
       </form>
 
     </div>
