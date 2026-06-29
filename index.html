@@ -182,6 +182,17 @@
     <div class="view-header">
       <h2>履歴</h2>
     </div>
+    <div class="backup-bar">
+      <button class="backup-btn" onclick="exportBackup()">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>
+        バックアップ保存
+      </button>
+      <label class="backup-btn import-label">
+        <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+        バックアップから復元
+        <input type="file" accept=".json,application/json" onchange="importBackup(this)" style="display:none">
+      </label>
+    </div>
     <div class="view-body scrollable" id="history-list"></div>
   </div>
 

@@ -210,6 +210,53 @@ function deleteRecord(id) {
   renderHome();
 }
 
+// ── バックアップ・復元 ───────────────────────────────
+function exportBackup() {
+  const data = Storage.getAll();
+  if (data.length === 0) {
+    alert('まだ記録がありません。');
+    return;
+  }
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `練習帳バックアップ_${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported) || !imported.every(r => r.id && r.timestamp)) {
+        throw new Error('invalid');
+      }
+      const existing = Storage.getAll();
+      const existingIds = new Set(existing.map(r => r.id));
+      const newRecords = imported.filter(r => !existingIds.has(r.id));
+      const merged = [...existing, ...newRecords]
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+      localStorage.setItem('ocd_records', JSON.stringify(merged));
+      alert(`復元完了。${newRecords.length}件のデータを追加しました。`);
+      renderHistory();
+      renderHome();
+    } catch {
+      alert('ファイルの読み込みに失敗しました。\n正しいバックアップファイルを選んでください。');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
 // ── アプリ更新 ──────────────────────────────────────
 function forceUpdate() {
   caches.keys()
