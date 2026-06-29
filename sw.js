@@ -1,4 +1,4 @@
-const CACHE = 'hannou-v7';
+const CACHE = 'hannou-v8';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
