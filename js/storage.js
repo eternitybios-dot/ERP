@@ -1,6 +1,25 @@
 const Storage = (() => {
   const KEY = 'ocd_records';
 
+  // 旧データの不快度・衝動は 0〜100 スケール。現行は 0〜10。
+  // 10 を超える値だけを 0〜10 に換算する（新データを壊さず、再実行しても安全）。
+  function migrateScale() {
+    let list;
+    try { list = JSON.parse(localStorage.getItem(KEY) || '[]'); }
+    catch { return; }
+    let changed = false;
+    const fix = v => {
+      if (typeof v === 'number' && v > 10) { changed = true; return Math.min(10, Math.round(v / 10)); }
+      return v;
+    };
+    for (const r of list) {
+      if ('discomfortLevel' in r) r.discomfortLevel = fix(r.discomfortLevel);
+      if ('urgeLevel' in r) r.urgeLevel = fix(r.urgeLevel);
+    }
+    if (changed) localStorage.setItem(KEY, JSON.stringify(list));
+  }
+  migrateScale();
+
   function getAll() {
     try {
       const list = JSON.parse(localStorage.getItem(KEY) || '[]');
