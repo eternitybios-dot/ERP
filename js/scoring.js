@@ -51,8 +51,28 @@ const Scoring = (() => {
     return record.type === 'tic' ? calcTic(record) : calcCompulsion(record);
   }
 
+  // 点数の内訳（なぜその点数か）を [ラベル, 点数] の配列で返す
+  function breakdown(record) {
+    const items = [['記録できた', 1]];
+    if (record.type === 'tic') {
+      if (record.awareness) items.push(['ムズムズに気づけた', 5]);
+      if (record.competing === 'できた') items.push(['別の動きに置き換えられた', 15]);
+      else if (record.competing === '少しできた') items.push(['少し置き換えられた', 7]);
+      if (record.urgePassed) items.push(['衝動の波をやり過ごせた', 10]);
+    } else {
+      if (record.reaction === 'しなかった') items.push(['強迫に反応しなかった', 15]);
+      else if (record.reaction === '少しした') items.push(['少し・遅らせた', 5]);
+      const e = ENDURANCE_SCORES[record.enduranceTime] || 0;
+      if (e > 0) items.push([`波をやり過ごせた（${record.enduranceTime}）`, e]);
+      (record.bonuses || []).forEach(b => {
+        if (BONUS_SCORES[b]) items.push([b, BONUS_SCORES[b]]);
+      });
+    }
+    return items;
+  }
+
   return {
-    calculate,
+    calculate, breakdown,
     ENDURANCE_SCORES, REACTION_SCORES, BONUS_SCORES, COMPETING_SCORES,
   };
 })();

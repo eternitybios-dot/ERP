@@ -59,7 +59,7 @@ function quickLog(kind) {
   }
   record.score = Scoring.calculate(record);
   Storage.save(record);
-  showFeedback(record.score);
+  showFeedback(record);
 }
 
 // ══ 記録フォーム（種類切り替え） ═════════════════════
@@ -132,7 +132,7 @@ function submitCompulsion() {
   };
   rec.score = Scoring.calculate(rec);
   Storage.save(rec);
-  showFeedback(rec.score);
+  showFeedback(rec);
   resetForms();
 }
 
@@ -151,16 +151,20 @@ function submitTic() {
   };
   rec.score = Scoring.calculate(rec);
   Storage.save(rec);
-  showFeedback(rec.score);
+  showFeedback(rec);
   resetForms();
 }
 
-function showFeedback(score) {
+function showFeedback(record) {
   const fb = document.getElementById('record-feedback');
-  document.getElementById('feedback-score').textContent = `+${score}点`;
+  document.getElementById('feedback-score').textContent = `+${record.score}点`;
+  const items = Scoring.breakdown(record);
+  document.getElementById('feedback-breakdown').innerHTML = items.map(([label, pts]) =>
+    `<div class="fb-item"><span class="fb-label">${label}</span><span class="fb-pts">+${pts}</span></div>`
+  ).join('');
   fb.classList.add('show');
   if (navigator.vibrate) navigator.vibrate(30);
-  setTimeout(() => { fb.classList.remove('show'); showView('home'); }, 2400);
+  setTimeout(() => { fb.classList.remove('show'); showView('home'); }, 3200);
 }
 
 function resetForms() {
