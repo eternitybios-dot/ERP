@@ -236,6 +236,39 @@ html, body {
 .timer-done.show { display: block; }
 
 /* ── Form ───────────────────────────────────────── */
+/* ── Quick fill ──────────────────────────────────── */
+.quick-fill-section {
+  background: rgba(155, 89, 182, 0.1);
+  border: 1.5px solid rgba(155, 89, 182, 0.3);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.quick-fill-summary {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.quick-fill-btn {
+  display: block;
+  width: 100%;
+  background: rgba(155, 89, 182, 0.2);
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  color: #c39bd3;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  min-height: 44px;
+}
+
+/* ── Pre-record msg ──────────────────────────────── */
 .pre-record-msg {
   background: rgba(78,205,196,0.08);
   color: var(--accent);

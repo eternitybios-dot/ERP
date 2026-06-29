@@ -51,6 +51,11 @@ const Storage = (() => {
     return streak;
   }
 
+  function getLatest() {
+    const all = getAll();
+    return all.length > 0 ? all[all.length - 1] : null;
+  }
+
   function deleteById(id) {
     const records = getAll().filter(r => r.id !== id);
     localStorage.setItem(KEY, JSON.stringify(records));
@@ -60,5 +65,5 @@ const Storage = (() => {
     localStorage.removeItem(KEY);
   }
 
-  return { getAll, save, getToday, getLast7Days, getStreakDays, deleteById, clearAll };
+  return { getAll, save, getToday, getLast7Days, getStreakDays, getLatest, deleteById, clearAll };
 })();

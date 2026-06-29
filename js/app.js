@@ -8,6 +8,7 @@ function showView(name) {
   document.querySelector(`.nav-btn[data-view="${name}"]`).classList.add('active');
 
   if (name === 'home') renderHome();
+  if (name === 'record') updateQuickFill();
   if (name === 'history') renderHistory();
   if (name === 'graph') Chart.render();
 }
@@ -138,10 +139,45 @@ function showFeedback(score) {
   }, 2800);
 }
 
+function updateQuickFill() {
+  const latest = Storage.getLatest();
+  const section = document.getElementById('quick-fill-section');
+  if (!latest) { section.style.display = 'none'; return; }
+  const time = latest.timestamp.split('T')[1].slice(0, 5);
+  const tags = [latest.situation, ...latest.triggers.slice(0, 2)].filter(Boolean).join('・');
+  document.getElementById('quick-fill-summary').textContent =
+    `前回 ${time}｜${tags}｜不快度 ${latest.discomfortLevel}/10`;
+  section.style.display = 'block';
+}
+
+function prefillFromLatest() {
+  const r = Storage.getLatest();
+  if (!r) return;
+  document.getElementById('discomfort-slider').value = r.discomfortLevel;
+  document.getElementById('discomfort-value').textContent = r.discomfortLevel;
+  document.getElementById('urge-slider').value = r.urgeLevel;
+  document.getElementById('urge-value').textContent = r.urgeLevel;
+  document.querySelectorAll('#situation-chips .chip').forEach(c => {
+    c.classList.toggle('selected', c.dataset.value === r.situation);
+  });
+  document.querySelectorAll('#trigger-chips .chip').forEach(c => {
+    c.classList.toggle('selected', r.triggers.includes(c.dataset.value));
+  });
+  const reactionEl = document.querySelector(`input[name="reaction"][value="${r.reaction}"]`);
+  if (reactionEl) reactionEl.checked = true;
+  document.querySelectorAll('#endurance-chips .chip').forEach(c => {
+    c.classList.toggle('selected', c.dataset.value === r.enduranceTime);
+  });
+  document.querySelectorAll('#bonus-chips .chip').forEach(c => {
+    c.classList.toggle('selected', r.bonuses.includes(c.dataset.value));
+  });
+  // メモは引き継がない（反芻防止）
+}
+
 function resetForm() {
   ['discomfort', 'urge'].forEach(name => {
-    document.getElementById(`${name}-slider`).value = 50;
-    document.getElementById(`${name}-value`).textContent = '50';
+    document.getElementById(`${name}-slider`).value = 5;
+    document.getElementById(`${name}-value`).textContent = '5';
   });
   document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
   const first = document.querySelector('input[name="reaction"]');
@@ -188,7 +224,7 @@ function renderHistory() {
                 </button>
               </div>
               <div class="entry-detail">
-                不快度 ${r.discomfortLevel}
+                不快度 ${r.discomfortLevel}/10
                 ${r.enduranceTime ? '/ 我慢 ' + r.enduranceTime : ''}
                 ${r.triggers.length ? '/ ' + r.triggers.slice(0, 2).join('・') : ''}
               </div>

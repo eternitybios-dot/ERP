@@ -73,23 +73,31 @@
         目的は安心することではなく、練習を積み重ねることです。
       </div>
 
+      <!-- 前回の内容を引き継ぐ -->
+      <div id="quick-fill-section" class="quick-fill-section" style="display:none">
+        <div class="quick-fill-summary" id="quick-fill-summary"></div>
+        <button type="button" class="quick-fill-btn" onclick="prefillFromLatest()">
+          この内容を引き継いで記録する →
+        </button>
+      </div>
+
       <form id="record-form">
 
         <!-- 不快度 -->
         <div class="form-group">
-          <label class="form-label">今の不快度</label>
+          <label class="form-label">今の不快度（10点満点）</label>
           <div class="slider-row">
-            <input type="range" id="discomfort-slider" class="slider" min="0" max="100" value="50">
-            <span id="discomfort-value" class="slider-val">50</span>
+            <input type="range" id="discomfort-slider" class="slider" min="0" max="10" value="5" step="1">
+            <span id="discomfort-value" class="slider-val">5</span>
           </div>
         </div>
 
         <!-- 強迫行為したい度 -->
         <div class="form-group">
-          <label class="form-label">強迫行為したい度</label>
+          <label class="form-label">強迫行為したい度（10点満点）</label>
           <div class="slider-row">
-            <input type="range" id="urge-slider" class="slider" min="0" max="100" value="50">
-            <span id="urge-value" class="slider-val">50</span>
+            <input type="range" id="urge-slider" class="slider" min="0" max="10" value="5" step="1">
+            <span id="urge-value" class="slider-val">5</span>
           </div>
         </div>
 
@@ -116,6 +124,7 @@
             <div class="chip" data-value="身体感覚">身体感覚</div>
             <div class="chip" data-value="打ち消し欲求">打ち消し欲求</div>
             <div class="chip" data-value="確認欲求">確認欲求</div>
+            <div class="chip" data-value="集中欲求">集中欲求</div>
             <div class="chip" data-value="回数・儀式">回数・儀式</div>
           </div>
         </div>
