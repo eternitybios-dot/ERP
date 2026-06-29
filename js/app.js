@@ -8,7 +8,8 @@ function showView(name) {
   document.querySelector(`.nav-btn[data-view="${name}"]`)?.classList.add('active');
 
   if (name === 'home') renderHome();
-  if (name === 'record') updateQuickFill();
+  if (name === 'erp') { recordType = 'compulsion'; updateQuickFill(); }
+  if (name === 'hrt') { recordType = 'tic'; updateQuickFill(); }
   if (name === 'history') renderHistory();
   if (name === 'graph') Chart.render();
 }
@@ -72,15 +73,6 @@ const CR_GUIDES = {
   '顔をしかめる': '表情の力をふっと抜き、口角と眉をニュートラルに保ちます。',
   'その他': 'その動きと「同時にはできない」反対の動作を選び、ムズムズが引くまでやさしく保ちます。',
 };
-
-function setRecordType(type) {
-  recordType = type;
-  document.querySelectorAll('#type-toggle .seg').forEach(b =>
-    b.classList.toggle('active', b.dataset.type === type));
-  document.getElementById('form-compulsion').style.display = type === 'compulsion' ? 'block' : 'none';
-  document.getElementById('form-tic').style.display = type === 'tic' ? 'block' : 'none';
-  updateQuickFill();
-}
 
 function initForms() {
   // スライダー
@@ -185,18 +177,18 @@ function resetForms() {
 
 // ══ 前回の引き継ぎ ═══════════════════════════════════
 function updateQuickFill() {
+  const isTic = recordType === 'tic';
+  const section = document.getElementById(isTic ? 'quick-fill-hrt' : 'quick-fill-erp');
+  const summaryEl = document.getElementById(isTic ? 'qf-summary-hrt' : 'qf-summary-erp');
   const latest = Storage.getLatest(recordType);
-  const section = document.getElementById('quick-fill-section');
   if (!latest) { section.style.display = 'none'; return; }
   const time = latest.timestamp.split('T')[1].slice(0, 5);
-  let summary;
-  if (recordType === 'tic') {
-    summary = `前回 ${time}｜${latest.movement || 'クセ'}`;
+  if (isTic) {
+    summaryEl.textContent = `前回 ${time}｜${latest.movement || 'クセ'}`;
   } else {
     const tags = [latest.situation, ...(latest.triggers || []).slice(0, 2)].filter(Boolean).join('・');
-    summary = `前回 ${time}｜${tags}`;
+    summaryEl.textContent = `前回 ${time}｜${tags}`;
   }
-  document.getElementById('quick-fill-summary').textContent = summary;
   section.style.display = 'block';
 }
 

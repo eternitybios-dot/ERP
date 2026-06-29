@@ -78,28 +78,23 @@
       </div>
 
       <div class="home-actions">
-        <button class="btn btn-soft" onclick="showView('record')">詳しく記録する</button>
+        <button class="btn btn-soft" onclick="showView('erp')">強迫（ERP）を詳しく記録</button>
+        <button class="btn btn-soft" onclick="showView('hrt')">クセ（HRT）を詳しく記録</button>
         <button class="btn btn-soft" onclick="openBreathing()">呼吸で波をやり過ごす</button>
       </div>
 
     </div>
   </div>
 
-  <!-- ══ 記録 ════════════════════════════════════════ -->
-  <div id="view-record" class="view">
-    <div class="view-header"><h2>記録する</h2></div>
+  <!-- ══ ERP（強迫）記録 ══════════════════════════════ -->
+  <div id="view-erp" class="view">
+    <div class="view-header"><h2>強迫（ERP）を記録</h2></div>
     <div class="view-body scrollable">
 
-      <!-- 種類の切り替え -->
-      <div class="segmented" id="type-toggle">
-        <button type="button" class="seg active" data-type="compulsion" onclick="setRecordType('compulsion')">強迫（ERP）</button>
-        <button type="button" class="seg" data-type="tic" onclick="setRecordType('tic')">クセ・チック</button>
-      </div>
-
       <!-- 前回の内容を引き継ぐ -->
-      <div id="quick-fill-section" class="quick-fill-section" style="display:none">
-        <div class="quick-fill-summary" id="quick-fill-summary"></div>
-        <button type="button" class="quick-fill-btn" onclick="prefillFromLatest()">
+      <div id="quick-fill-erp" class="quick-fill-section teal" style="display:none">
+        <div class="quick-fill-summary" id="qf-summary-erp"></div>
+        <button type="button" class="quick-fill-btn teal" onclick="prefillFromLatest()">
           前回の内容を引き継ぐ ↺
         </button>
       </div>
@@ -191,8 +186,24 @@
         <button type="submit" class="btn btn-primary submit-btn">記録する</button>
       </form>
 
+    </div>
+  </div>
+
+  <!-- ══ HRT（クセ・チック）記録 ═══════════════════════ -->
+  <div id="view-hrt" class="view">
+    <div class="view-header"><h2>クセ・チック（HRT）を記録</h2></div>
+    <div class="view-body scrollable">
+
+      <!-- 前回の内容を引き継ぐ -->
+      <div id="quick-fill-hrt" class="quick-fill-section" style="display:none">
+        <div class="quick-fill-summary" id="qf-summary-hrt"></div>
+        <button type="button" class="quick-fill-btn" onclick="prefillFromLatest()">
+          前回の動きを引き継ぐ ↺
+        </button>
+      </div>
+
       <!-- ───── クセ・チック（HRT） ───── -->
-      <form id="form-tic" class="record-form" style="display:none">
+      <form id="form-tic" class="record-form">
         <div class="pre-record-msg lav">
           動きを止めるのではなく、<b>ムズムズ（前駆衝動）に気づいて別の動きに置き換える</b>練習です。気づけただけでも前進です。
         </div>
@@ -359,9 +370,13 @@
     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     <span>ホーム</span>
   </button>
-  <button class="nav-btn" data-view="record">
-    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-    <span>記録</span>
+  <button class="nav-btn" data-view="erp">
+    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    <span>ERP</span>
+  </button>
+  <button class="nav-btn" data-view="hrt">
+    <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+    <span>HRT</span>
   </button>
   <button class="nav-btn" data-view="history">
     <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
