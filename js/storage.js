@@ -3,16 +3,22 @@ const Storage = (() => {
 
   function getAll() {
     try {
-      return JSON.parse(localStorage.getItem(KEY) || '[]');
+      const list = JSON.parse(localStorage.getItem(KEY) || '[]');
+      // 旧データ（type なし）は強迫記録として扱う
+      return list.map(r => ({ type: 'compulsion', ...r }));
     } catch {
       return [];
     }
   }
 
+  function setAll(list) {
+    localStorage.setItem(KEY, JSON.stringify(list));
+  }
+
   function save(record) {
     const records = getAll();
     records.push(record);
-    localStorage.setItem(KEY, JSON.stringify(records));
+    setAll(records);
   }
 
   function getToday() {
@@ -42,28 +48,30 @@ const Storage = (() => {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
-      if (dates.has(dateStr)) {
-        streak++;
-      } else {
-        break;
-      }
+      if (dates.has(dateStr)) streak++;
+      else break;
     }
     return streak;
   }
 
-  function getLatest() {
+  function getLatest(type) {
     const all = getAll();
-    return all.length > 0 ? all[all.length - 1] : null;
+    for (let i = all.length - 1; i >= 0; i--) {
+      if (!type || all[i].type === type) return all[i];
+    }
+    return null;
   }
 
   function deleteById(id) {
-    const records = getAll().filter(r => r.id !== id);
-    localStorage.setItem(KEY, JSON.stringify(records));
+    setAll(getAll().filter(r => r.id !== id));
   }
 
   function clearAll() {
     localStorage.removeItem(KEY);
   }
 
-  return { getAll, save, getToday, getLast7Days, getStreakDays, getLatest, deleteById, clearAll };
+  return {
+    getAll, save, setAll, getToday, getLast7Days,
+    getStreakDays, getLatest, deleteById, clearAll,
+  };
 })();

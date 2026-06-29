@@ -66,12 +66,14 @@ const Chart = (() => {
       return `${parseInt(m)}/${parseInt(day)}`;
     });
     const scores = dates.map(d => daily[d].reduce((s, r) => s + r.score, 0));
-    const noReactions = dates.map(d => daily[d].filter(r => r.reaction === 'しなかった').length);
+    const wins = dates.map(d => daily[d].filter(r =>
+      r.reaction === 'しなかった' || r.competing === 'できた' || r.competing === '少しできた'
+    ).length);
 
     const c1 = document.getElementById('chart-scores');
     const c2 = document.getElementById('chart-reactions');
-    if (c1) drawBars(c1, labels, scores, '#4ecdc4', '日別合計点');
-    if (c2) drawBars(c2, labels, noReactions, '#9b59b6', '反応しなかった回数');
+    if (c1) drawBars(c1, labels, scores, '#5eead4', '日別合計点');
+    if (c2) drawBars(c2, labels, wins, '#b794f6', '反応しなかった・置き換えた回数');
   }
 
   return { render };
