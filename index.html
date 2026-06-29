@@ -277,13 +277,54 @@
     <div class="view-body scrollable" id="history-list"></div>
   </div>
 
-  <!-- ══ グラフ ═══════════════════════════════════════ -->
+  <!-- ══ がんばりの記録 ═══════════════════════════════ -->
   <div id="view-graph" class="view">
-    <div class="view-header"><h2>グラフ</h2></div>
-    <div class="view-body">
+    <div class="view-header"><h2>がんばりの記録</h2></div>
+    <div class="view-body scrollable">
+
+      <!-- ヒーロー：累計ブレイブ（減らない数字） -->
+      <div class="hero-card">
+        <div class="hero-label">これまで 反応しなかった・置き換えた回数</div>
+        <div class="hero-num" id="total-wins">0</div>
+        <div class="hero-sub">1回ごとに、脳は「反応しなくても大丈夫」を学んでいます。</div>
+      </div>
+
+      <!-- マイルストーン -->
+      <div class="milestone-card">
+        <div class="ms-top">
+          <span class="ms-badge" id="ms-badge">🌱</span>
+          <span class="ms-title" id="ms-title">はじめよう</span>
+        </div>
+        <div class="ms-bar"><div class="ms-fill" id="ms-fill"></div></div>
+        <div class="ms-note" id="ms-note"></div>
+      </div>
+
+      <!-- 成長カーブ -->
+      <div class="chart-wrap"><canvas id="chart-cumulative"></canvas></div>
+
+      <!-- 今週 vs 先週（やさしい比較） -->
+      <div class="week-card">
+        <div class="week-row">
+          <div class="week-col"><span class="week-lbl">先週</span><b id="last-week">0</b></div>
+          <div class="week-arrow flat" id="week-arrow">→</div>
+          <div class="week-col"><span class="week-lbl">今週</span><b id="this-week">0</b></div>
+        </div>
+        <div class="week-msg" id="week-msg"></div>
+      </div>
+
+      <!-- 小カード -->
+      <div class="stats-grid">
+        <div class="stat-item"><span class="stat-num" id="practice-days">0</span><span class="stat-lbl">練習した日</span></div>
+        <div class="stat-item"><span class="stat-num" id="cur-streak">0</span><span class="stat-lbl">いま連続</span></div>
+        <div class="stat-item"><span class="stat-num" id="best-day">0</span><span class="stat-lbl">最高の1日</span></div>
+      </div>
+
+      <!-- 詳細 -->
+      <div class="section-label">直近7日</div>
       <div class="chart-wrap"><canvas id="chart-scores"></canvas></div>
       <div class="chart-wrap"><canvas id="chart-reactions"></canvas></div>
-      <p class="graph-note">「反応しなかった・置き換えられた回数」が増えていれば、それが回復のサインです。</p>
+
+      <p class="graph-note">点数を競う必要はありません。続けていること自体が、回復の確かな一歩です。</p>
     </div>
   </div>
 
