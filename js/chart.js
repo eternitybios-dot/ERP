@@ -51,7 +51,7 @@ const Chart = (() => {
     const n = series.length;
     const maxV = Math.max(series[n - 1]?.value || 0, 1);
 
-    ctx.fillStyle = '#98a2c4';
+    ctx.fillStyle = '#7b8194';
     ctx.font = 'bold 12px -apple-system, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('積み上がるブレイブ（累計）', padL, 16);
@@ -87,13 +87,13 @@ const Chart = (() => {
     ctx.arc(lx, ly, 4.5, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
-    ctx.fillStyle = '#eaeefb';
+    ctx.fillStyle = '#3b4152';
     ctx.font = 'bold 13px -apple-system, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(series[n - 1].value, lx, Math.max(ly - 10, padTop + 4));
 
     // 端の日付
-    ctx.fillStyle = '#6b769c';
+    ctx.fillStyle = '#9aa0ad';
     ctx.font = '10px -apple-system, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(series[0].label, padL, H - 6);
@@ -118,7 +118,7 @@ const Chart = (() => {
     const chartW = W - padL - padR, chartH = H - padTop - padBottom;
     const barW = chartW / n, barPad = barW * 0.22;
 
-    ctx.fillStyle = '#98a2c4';
+    ctx.fillStyle = '#7b8194';
     ctx.font = 'bold 12px -apple-system, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(title, padL, 16);
@@ -127,7 +127,7 @@ const Chart = (() => {
       const x = padL + i * barW;
       const bh = (values[i] / maxVal) * chartH;
       const y = padTop + chartH - bh;
-      ctx.fillStyle = values[i] > 0 ? color : '#23263e';
+      ctx.fillStyle = values[i] > 0 ? color : '#ebe7dd';
       const bx = x + barPad, bw = barW - barPad * 2, r = 5;
       ctx.beginPath();
       ctx.moveTo(bx + r, y);
@@ -139,12 +139,12 @@ const Chart = (() => {
       ctx.quadraticCurveTo(bx, y, bx + r, y);
       ctx.fill();
       if (values[i] > 0) {
-        ctx.fillStyle = '#cdd6f4';
+        ctx.fillStyle = '#3b4152';
         ctx.font = 'bold 11px -apple-system, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(values[i], x + barW / 2, y - 5);
       }
-      ctx.fillStyle = '#6b769c';
+      ctx.fillStyle = '#9aa0ad';
       ctx.font = '10px -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(lbl, x + barW / 2, H - 6);
@@ -202,7 +202,7 @@ const Chart = (() => {
       series.push({ label: `${d.getMonth() + 1}/${d.getDate()}`, value: cum });
     }
     const cumCanvas = document.getElementById('chart-cumulative');
-    if (cumCanvas) drawArea(cumCanvas, series, '#5eead4');
+    if (cumCanvas) drawArea(cumCanvas, series, '#0d9488');
 
     // 今週 vs 先週（やさしい比較）
     const winsInRange = (startOffset, endOffset) =>
@@ -246,8 +246,8 @@ const Chart = (() => {
     const wins = dates.map(d => last7[d].filter(isWin).length);
     const c1 = document.getElementById('chart-scores');
     const c2 = document.getElementById('chart-reactions');
-    if (c1) drawBars(c1, labels, points, '#5eead4', '日別の練習点');
-    if (c2) drawBars(c2, labels, wins, '#b794f6', '反応しなかった・置き換えた回数');
+    if (c1) drawBars(c1, labels, points, '#0d9488', '日別の練習点');
+    if (c2) drawBars(c2, labels, wins, '#8b5cf6', '反応しなかった・置き換えた回数');
   }
 
   return { render };
