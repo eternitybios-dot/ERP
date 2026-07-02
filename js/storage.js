@@ -141,11 +141,36 @@ const Storage = (() => {
     localStorage.setItem(BACKUP_AT_KEY, iso);
   }
 
+  // ── リマインダー設定 ──────────────────────────────
+  const REMINDER_KEY = 'ocd_reminder';
+  const REMINDER_SHOWN_KEY = 'ocd_reminder_last_shown';
+
+  function getReminder() {
+    try {
+      return JSON.parse(localStorage.getItem(REMINDER_KEY)) || { enabled: false, time: '20:00' };
+    } catch {
+      return { enabled: false, time: '20:00' };
+    }
+  }
+
+  function setReminder(r) {
+    localStorage.setItem(REMINDER_KEY, JSON.stringify(r));
+  }
+
+  function getReminderLastShown() {
+    return localStorage.getItem(REMINDER_SHOWN_KEY);
+  }
+
+  function setReminderLastShown(dateStr) {
+    localStorage.setItem(REMINDER_SHOWN_KEY, dateStr);
+  }
+
   return {
     getAll, setAll, save, getToday, getLast7Days,
     getPracticeDays, getStreakDays, getLatest, deleteById, clearAll,
     getCheckins, setCheckins, saveCheckin,
     getLastBackupAt, setLastBackupAt,
+    getReminder, setReminder, getReminderLastShown, setReminderLastShown,
     localDateStr, localTimeStr,
   };
 })();

@@ -621,6 +621,144 @@ function closeCheckin() {
   document.getElementById('checkin-overlay').classList.remove('show');
 }
 
+// ══ 毎日のリマインダー（オプトイン・1日1回） ═════════
+let reminderTimeout = null;
+
+function nextReminderAt(hhmm, now = new Date()) {
+  const [h, m] = hhmm.split(':').map(Number);
+  const t = new Date(now);
+  t.setHours(h, m, 0, 0);
+  if (t <= now) t.setDate(t.getDate() + 1);
+  return t;
+}
+
+function initReminder() {
+  const s = Storage.getReminder();
+  const timeInput = document.getElementById('reminder-time');
+  timeInput.value = s.time;
+  timeInput.addEventListener('change', () => {
+    const st = Storage.getReminder();
+    st.time = timeInput.value || '20:00';
+    Storage.setReminder(st);
+    updateReminderUi();
+    scheduleReminder();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) scheduleReminder();
+  });
+  updateReminderUi();
+  scheduleReminder();
+}
+
+async function toggleReminder() {
+  const s = Storage.getReminder();
+  if (s.enabled) {
+    s.enabled = false;
+    Storage.setReminder(s);
+  } else if ('Notification' in window) {
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      s.enabled = true;
+      Storage.setReminder(s);
+    }
+  }
+  updateReminderUi();
+  scheduleReminder();
+}
+
+function updateReminderUi() {
+  const s = Storage.getReminder();
+  const btn = document.getElementById('reminder-toggle');
+  const status = document.getElementById('reminder-status');
+  if (!btn || !status) return;
+  if (!('Notification' in window)) {
+    btn.style.display = 'none';
+    status.textContent = 'この開き方ではアプリ内通知を使えません（ホーム画面に追加したアプリからなら設定できます）。下のカレンダー通知なら確実に届きます。';
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    btn.style.display = 'none';
+    status.textContent = '通知がブロックされています。iPhoneの「設定 → 通知 → 練習帳」から許可してください。';
+    return;
+  }
+  btn.style.display = '';
+  btn.textContent = s.enabled ? 'オフにする' : 'オンにする';
+  status.textContent = s.enabled
+    ? `毎日 ${s.time} にお知らせします。アプリを完全に閉じていると届かないことがあるので、確実にしたいときは下のカレンダー通知を併用してください。`
+    : '1日1回だけ、そっとお知らせします。義務ではありません。';
+}
+
+function scheduleReminder() {
+  clearTimeout(reminderTimeout);
+  const s = Storage.getReminder();
+  if (!s.enabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const next = nextReminderAt(s.time);
+  reminderTimeout = setTimeout(() => {
+    const today = Storage.localDateStr(new Date());
+    if (Storage.getReminderLastShown() !== today) {
+      Storage.setReminderLastShown(today);
+      showReminderNotification();
+    }
+    scheduleReminder();
+  }, next.getTime() - Date.now());
+}
+
+const REMINDER_MSGS = [
+  '今日も1タップだけ、どうぞ。穏やかな日ボタンでもOKです。',
+  '記録するだけで+1点。完璧じゃなくて大丈夫。',
+  '波があってもなくても、開くだけで前進です。',
+];
+
+function showReminderNotification() {
+  const body = REMINDER_MSGS[Math.floor(Math.random() * REMINDER_MSGS.length)];
+  navigator.serviceWorker?.ready
+    .then(reg => reg.showNotification('反応しない練習帳', {
+      body,
+      tag: 'daily-reminder',
+      icon: 'icons/icon-192.png',
+      badge: 'icons/icon-192.png',
+    }))
+    .catch(() => {});
+}
+
+// iPhoneで確実に届く方法：カレンダーの繰り返し通知（.ics）を生成
+function downloadReminderIcs() {
+  const time = document.getElementById('reminder-time').value || '20:00';
+  const start = nextReminderAt(time);
+  const pad = n => String(n).padStart(2, '0');
+  const dt = `${start.getFullYear()}${pad(start.getMonth() + 1)}${pad(start.getDate())}` +
+             `T${pad(start.getHours())}${pad(start.getMinutes())}00`;
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//renshucho//reminder//JA',
+    'BEGIN:VEVENT',
+    `UID:renshucho-daily-${time.replace(':', '')}@local`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART:${dt}`,
+    'RRULE:FREQ=DAILY',
+    'SUMMARY:反応しない練習帳',
+    'DESCRIPTION:1タップだけ、今日の練習を記録しよう',
+    'BEGIN:VALARM',
+    'TRIGGER:PT0S',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:反応しない練習帳',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const blob = new Blob([ics], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '練習帳リマインダー.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 // ══ アプリ更新 ═══════════════════════════════════════
 function forceUpdate() {
   caches.keys()
@@ -636,6 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   });
   initForms();
+  initReminder();
   showView('home');
 
   // ストレージの永続化を要求（iOSの自動削除への保険）

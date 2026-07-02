@@ -94,6 +94,19 @@
         <button class="btn btn-soft" onclick="openBreathing()">呼吸で波をやり過ごす</button>
       </div>
 
+      <!-- 毎日のリマインダー -->
+      <div class="reminder-card">
+        <div class="reminder-title">🔔 毎日のリマインダー<span class="lbl-hint">任意</span></div>
+        <div class="reminder-row">
+          <input type="time" id="reminder-time" class="time-input" value="20:00">
+          <button type="button" class="btn-mini" id="reminder-toggle" onclick="toggleReminder()">オンにする</button>
+        </div>
+        <div class="reminder-status" id="reminder-status"></div>
+        <button type="button" class="reminder-ics" onclick="downloadReminderIcs()">
+          📅 カレンダー通知として登録する（アプリを閉じていても確実）
+        </button>
+      </div>
+
     </div>
   </div>
 
