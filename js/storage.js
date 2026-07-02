@@ -34,18 +34,24 @@ const Storage = (() => {
   }
   migrateScale();
 
+  // 全記録のメモ化キャッシュ（タブ切替のたびのJSONパースを避ける）
+  let recordsCache = null;
+
   function getAll() {
+    if (recordsCache) return recordsCache;
     try {
       const list = JSON.parse(localStorage.getItem(KEY) || '[]');
       // 旧データ（type なし）は強迫記録として扱う
-      return list.map(r => ({ type: 'compulsion', ...r }));
+      recordsCache = list.map(r => ({ type: 'compulsion', ...r }));
     } catch {
-      return [];
+      recordsCache = [];
     }
+    return recordsCache;
   }
 
   function setAll(list) {
     localStorage.setItem(KEY, JSON.stringify(list));
+    recordsCache = null;
   }
 
   function save(record) {
@@ -114,6 +120,7 @@ const Storage = (() => {
 
   function clearAll() {
     localStorage.removeItem(KEY);
+    recordsCache = null;
   }
 
   // ── 月1セルフチェック ─────────────────────────────

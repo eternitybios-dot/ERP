@@ -1,6 +1,19 @@
-const CACHE = 'hannou-v16';
+const CACHE = 'hannou-v17';
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './css/style.css',
+  './js/app.js',
+  './js/storage.js',
+  './js/scoring.js',
+  './js/chart.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+];
 
 self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).catch(() => {}));
   self.skipWaiting();
 });
 
@@ -26,21 +39,35 @@ self.addEventListener('notificationclick', e => {
   );
 });
 
-// オンライン時は常にネットワークから取得してキャッシュを更新する。
-// オフライン時だけキャッシュを使う。GETのみ対象。
+function fetchAndCache(request) {
+  return fetch(request).then(response => {
+    if (response.ok) {
+      const clone = response.clone();
+      caches.open(CACHE).then(cache => cache.put(request, clone)).catch(() => {});
+    }
+    return response;
+  });
+}
+
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== location.origin) return;
+
+  // HTML（起動）はネットワーク優先＝コード更新を確実に拾う。オフライン時はキャッシュ
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetchAndCache(e.request).catch(() =>
+        caches.match(e.request).then(c => c || caches.match('./index.html'))
+      )
+    );
+    return;
+  }
+
+  // アセットはキャッシュ即時表示＋裏で更新（起動を速く。更新は次回起動で反映）
   e.respondWith(
-    fetch(e.request)
-      .then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE)
-            .then(cache => cache.put(e.request, clone))
-            .catch(() => {});
-        }
-        return response;
-      })
-      .catch(() => caches.match(e.request))
+    caches.match(e.request).then(cached => {
+      const fresh = fetchAndCache(e.request).catch(() => cached);
+      return cached || fresh;
+    })
   );
 });

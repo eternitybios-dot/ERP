@@ -1,8 +1,9 @@
 // ══ ビュー切り替え ═══════════════════════════════════
 function showView(name) {
+  const view = document.getElementById('view-' + name);
+  if (view.classList.contains('active')) return; // 同じタブなら何もしない
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const view = document.getElementById('view-' + name);
   view.classList.add('active');
   view.querySelector('.view-body')?.scrollTo(0, 0);
   document.querySelector(`.nav-btn[data-view="${name}"]`)?.classList.add('active');
@@ -212,6 +213,8 @@ function submitTic() {
   resetForms();
 }
 
+let feedbackTimer = null;
+
 function showFeedback(record) {
   const fb = document.getElementById('record-feedback');
   document.getElementById('feedback-score').textContent = `+${record.score}点`;
@@ -229,7 +232,19 @@ function showFeedback(record) {
   }
   fb.classList.add('show');
   if (navigator.vibrate) navigator.vibrate(30);
-  setTimeout(() => { fb.classList.remove('show'); showView('home'); }, 3200);
+  clearTimeout(feedbackTimer);
+  feedbackTimer = setTimeout(closeFeedback, 3200);
+}
+
+function closeFeedback() {
+  clearTimeout(feedbackTimer);
+  feedbackTimer = null;
+  const fb = document.getElementById('record-feedback');
+  if (!fb.classList.contains('show')) return;
+  fb.classList.remove('show');
+  // ホーム表示中でも点数を確実に更新する
+  if (document.getElementById('view-home').classList.contains('active')) renderHome();
+  else showView('home');
 }
 
 function resetForms() {
@@ -1104,8 +1119,14 @@ function forceUpdate() {
 // ══ 初期化 ═══════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => showView(btn.dataset.view));
+    const go = () => showView(btn.dataset.view);
+    btn.addEventListener('pointerdown', go); // 指が触れた瞬間に切替（体感を速く）
+    btn.addEventListener('click', go);       // キーボード操作用
   });
+
+  // 記録完了フィードバックはタップで即閉じられる
+  document.getElementById('record-feedback').addEventListener('click', closeFeedback);
+
   initForms();
   initReminder();
   showView('home');
