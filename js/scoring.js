@@ -22,6 +22,9 @@ const Scoring = (() => {
     '打ち消しイメージをしなかった': 15,
   };
 
+  // 期待違反（予想より耐えられた）＝抑制学習の核心。発見に加点
+  const EXPECTANCY_BONUS = 5;
+
   // ── クセ・チック（HRT：気づき＋拮抗反応）系 ──────
   const COMPETING_SCORES = {
     'できた': 15,      // 拮抗反応（別の動き）をやり切った
@@ -33,6 +36,7 @@ const Scoring = (() => {
     let score = 1; // 記録しただけで +1
     score += REACTION_SCORES[record.reaction] || 0;
     score += ENDURANCE_SCORES[record.enduranceTime] || 0;
+    if (record.expectancy === '予想より耐えられた') score += EXPECTANCY_BONUS;
     if (Array.isArray(record.bonuses)) {
       for (const b of record.bonuses) score += BONUS_SCORES[b] || 0;
     }
@@ -48,11 +52,15 @@ const Scoring = (() => {
   }
 
   function calculate(record) {
+    if (record.type === 'calm') return 1;         // 穏やかな日の記録（欠測と区別するため）
     return record.type === 'tic' ? calcTic(record) : calcCompulsion(record);
   }
 
   // 点数の内訳（なぜその点数か）を [ラベル, 点数] の配列で返す
   function breakdown(record) {
+    if (record.type === 'calm') {
+      return [['穏やかな一日を記録できた', 1]];
+    }
     const items = [['記録できた', 1]];
     if (record.type === 'tic') {
       if (record.awareness) items.push(['ムズムズに気づけた', 5]);
@@ -64,6 +72,7 @@ const Scoring = (() => {
       else if (record.reaction === '少しした') items.push(['少し・遅らせた', 5]);
       const e = ENDURANCE_SCORES[record.enduranceTime] || 0;
       if (e > 0) items.push([`波をやり過ごせた（${record.enduranceTime}）`, e]);
+      if (record.expectancy === '予想より耐えられた') items.push(['予想より耐えられた（発見！）', EXPECTANCY_BONUS]);
       (record.bonuses || []).forEach(b => {
         if (BONUS_SCORES[b]) items.push([b, BONUS_SCORES[b]]);
       });
@@ -73,6 +82,6 @@ const Scoring = (() => {
 
   return {
     calculate, breakdown,
-    ENDURANCE_SCORES, REACTION_SCORES, BONUS_SCORES, COMPETING_SCORES,
+    ENDURANCE_SCORES, REACTION_SCORES, BONUS_SCORES, COMPETING_SCORES, EXPECTANCY_BONUS,
   };
 })();

@@ -171,6 +171,19 @@ body::before {
 
 .home-actions { display: flex; flex-direction: column; gap: 9px; }
 
+/* 穏やかな日ボタン */
+.calm-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; margin: 2px 0 18px;
+  background: rgba(244,184,106,0.07); border: 1px dashed rgba(244,184,106,0.3);
+  border-radius: 14px; padding: 12px;
+  color: #e8c99a; font-size: 14px; font-weight: 600; font-family: inherit;
+  cursor: pointer; min-height: 48px;
+  transition: transform .12s ease;
+}
+.calm-btn:active { transform: scale(0.98); }
+.calm-pts { font-weight: 800; color: var(--gold); }
+
 /* ── Segmented control ──────────────────────────── */
 .segmented {
   display: flex; gap: 4px; padding: 4px;
@@ -252,6 +265,18 @@ body::before {
 .cr-guide-title { font-size: 12px; font-weight: 700; color: var(--lav); margin-bottom: 6px; }
 .cr-guide-body { font-size: 13px; color: #d8cdf2; line-height: 1.65; }
 
+.cr-timer-btn {
+  width: 100%; margin-top: 12px;
+  background: rgba(183,148,246,0.16); border: none; border-radius: 10px;
+  padding: 11px; color: #d4bdfb;
+  font-size: 13.5px; font-weight: 700; font-family: inherit; cursor: pointer; min-height: 44px;
+}
+.cr-timer-display {
+  margin-top: 10px; text-align: center;
+  font-size: 15px; font-weight: 700; color: var(--lav);
+  font-variant-numeric: tabular-nums; line-height: 1.6;
+}
+
 /* Memo */
 .memo-input {
   width: 100%; background: var(--card2); border: 1.5px solid transparent;
@@ -320,6 +345,12 @@ body::before {
 
 /* ── Backup bar ─────────────────────────────────── */
 .backup-bar { display: flex; gap: 8px; padding: 8px 20px 12px; flex-shrink: 0; }
+.backup-hint {
+  margin: 0 20px 10px; padding: 10px 14px;
+  background: rgba(244,184,106,0.08); border: 1px solid rgba(244,184,106,0.22);
+  border-radius: 12px; font-size: 12.5px; color: #e8c99a; line-height: 1.6;
+  flex-shrink: 0;
+}
 .backup-btn {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
   background: var(--card2); border: none; border-radius: 11px; padding: 10px;
@@ -343,6 +374,8 @@ body::before {
 .tag { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 7px; }
 .tag-c { background: rgba(94,234,212,0.14); color: var(--teal); }
 .tag-t { background: rgba(183,148,246,0.16); color: var(--lav); }
+.tag-calm { background: rgba(244,184,106,0.14); color: var(--gold); }
+.entry-score.gold { color: var(--gold); }
 .entry-reaction { font-size: 12px; color: var(--sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .entry-reaction.good { color: var(--teal); }
 .entry-reaction.good-lav { color: var(--lav); }
@@ -404,6 +437,34 @@ body::before {
 .week-arrow.flat { color: var(--sub); }
 .week-arrow.wave { color: var(--lav); }
 .week-msg { margin-top: 12px; font-size: 12.5px; color: var(--sub); text-align: center; line-height: 1.7; }
+.week-note { margin-top: 8px; font-size: 11px; color: #6b769c; text-align: center; line-height: 1.6; }
+
+/* ── 月1セルフチェック ──────────────────────────── */
+.checkin-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+.checkin-title { display: flex; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.checkin-status { font-size: 12.5px; color: var(--sub); line-height: 1.7; margin-bottom: 10px; }
+.checkin-card .btn { margin-top: 2px; }
+
+.checkin-overlay {
+  background: rgba(14,16,32,0.98);
+  justify-content: flex-start; overflow-y: auto;
+  padding: calc(var(--safe-t) + 56px) 24px 40px;
+}
+.checkin-head { font-size: 19px; font-weight: 800; margin-bottom: 6px; }
+.checkin-sub { font-size: 13px; color: var(--sub); margin-bottom: 22px; }
+.checkin-questions { width: 100%; max-width: 400px; text-align: left; }
+.checkin-q { margin-bottom: 22px; }
+.checkin-q-label { font-size: 14px; font-weight: 600; margin-bottom: 10px; line-height: 1.6; }
+.checkin-opts .chip { flex: 1; text-align: center; padding: 10px 4px; font-size: 12.5px; min-width: 0; }
+.checkin-save { max-width: 400px; margin-top: 8px; }
+
+/* ── Reduced motion ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 /* ── Bottom nav ─────────────────────────────────── */
 .bottom-nav {

@@ -2,12 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0e1020">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="練習帳">
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="css/style.css">
   <title>反応しない練習帳</title>
@@ -44,8 +45,8 @@
           <span class="stat-lbl">反応しなかった</span>
         </div>
         <div class="stat-item">
-          <span id="streak-days" class="stat-num">0</span>
-          <span class="stat-lbl">連続日数</span>
+          <span id="home-practice-days" class="stat-num">0</span>
+          <span class="stat-lbl">練習した日</span>
         </div>
       </div>
 
@@ -56,16 +57,16 @@
         <button class="qa-btn qa-teal" onclick="quickLog('resisted')">
           <span class="qa-icon">🛡️</span>
           <span class="qa-text">
-            <b>強迫行為をガマンできた</b>
-            <small>記録 +1 ・ ガマン +15</small>
+            <b>強迫行為をしないでいられた</b>
+            <small>記録 +1 ・ 反応しなかった +15</small>
           </span>
           <span class="qa-pts">+16</span>
         </button>
         <button class="qa-btn qa-gold" onclick="quickLog('backtolife')">
           <span class="qa-icon">🌱</span>
           <span class="qa-text">
-            <b>ガマンして、いつもの生活に戻れた</b>
-            <small>記録 +1 ・ ガマン +15 ・ 生活に戻れた +20</small>
+            <b>不快なまま、いつもの生活に戻れた</b>
+            <small>記録 +1 ・ 反応しなかった +15 ・ 生活に戻れた +20</small>
           </span>
           <span class="qa-pts">+36</span>
         </button>
@@ -82,6 +83,10 @@
           <span class="qa-pts">+31</span>
         </button>
       </div>
+
+      <button class="calm-btn" onclick="quickLog('calm')">
+        🕊️ 今日は波が穏やかだった <span class="calm-pts">+1</span>
+      </button>
 
       <div class="home-actions">
         <button class="btn btn-soft" onclick="showView('erp')">強迫（ERP）を詳しく記録</button>
@@ -184,6 +189,15 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label">予想とくらべてどうだった？<span class="lbl-hint">「思ったより大丈夫だった」が一番の学習</span></label>
+          <div class="chip-group single big" id="expectancy-chips">
+            <div class="chip" data-value="予想より耐えられた">予想より耐えられた <small>+5</small></div>
+            <div class="chip" data-value="だいたい予想どおり">予想どおり</div>
+            <div class="chip" data-value="予想よりキツかった">キツかった</div>
+          </div>
+        </div>
+
+        <div class="form-group">
           <label class="form-label">メモ<span class="lbl-hint">任意・短く</span></label>
           <textarea id="memo-c" class="memo-input" rows="2" maxlength="100"
             placeholder="一言だけ（書きすぎは反芻のもと）"></textarea>
@@ -230,6 +244,8 @@
         <div class="cr-guide" id="cr-guide" style="display:none">
           <div class="cr-guide-title">おすすめの拮抗反応（別の動き）</div>
           <div class="cr-guide-body" id="cr-guide-body"></div>
+          <button type="button" class="cr-timer-btn" id="cr-timer-btn" onclick="toggleCrTimer()">⏱ 1分キープしてみる</button>
+          <div class="cr-timer-display" id="cr-timer-display" style="display:none"></div>
         </div>
 
         <div class="form-group">
@@ -291,6 +307,7 @@
         <input type="file" accept=".json,application/json" onchange="importBackup(this)" style="display:none">
       </label>
     </div>
+    <div class="backup-hint" id="backup-hint" style="display:none"></div>
     <div class="view-body scrollable" id="history-list"></div>
   </div>
 
@@ -327,12 +344,13 @@
           <div class="week-col"><span class="week-lbl">今週</span><b id="this-week">0</b></div>
         </div>
         <div class="week-msg" id="week-msg"></div>
+        <div class="week-note">回数は「記録した量」でも変わります。増減で一喜一憂しなくて大丈夫。</div>
       </div>
 
       <!-- 小カード -->
       <div class="stats-grid">
         <div class="stat-item"><span class="stat-num" id="practice-days">0</span><span class="stat-lbl">練習した日</span></div>
-        <div class="stat-item"><span class="stat-num" id="cur-streak">0</span><span class="stat-lbl">いま連続</span></div>
+        <div class="stat-item"><span class="stat-num" id="cur-streak">0</span><span class="stat-lbl">連続（1日休みOK）</span></div>
         <div class="stat-item"><span class="stat-num" id="best-day">0</span><span class="stat-lbl">最高の1日</span></div>
       </div>
 
@@ -341,7 +359,17 @@
       <div class="chart-wrap"><canvas id="chart-scores"></canvas></div>
       <div class="chart-wrap"><canvas id="chart-reactions"></canvas></div>
 
-      <p class="graph-note">点数を競う必要はありません。続けていること自体が、回復の確かな一歩です。</p>
+      <!-- 月1セルフチェック -->
+      <div class="checkin-card">
+        <div class="checkin-title">月1セルフチェック<span class="lbl-hint">任意・約1分</span></div>
+        <div class="checkin-status" id="checkin-status"></div>
+        <button type="button" class="btn btn-soft" id="checkin-open-btn" onclick="openCheckin()" style="display:none">
+          セルフチェックする
+        </button>
+      </div>
+
+      <p class="graph-note">点数を競う必要はありません。続けていること自体が、回復の確かな一歩です。<br>
+      このアプリは治療の補助です。つらさが続くときは、主治医や専門家に相談してください。</p>
     </div>
   </div>
 
@@ -367,7 +395,17 @@
     </div>
   </div>
   <div class="breathing-caption" id="breathing-caption">鼻からゆっくり吸って、細く長く吐きます</div>
+  <div class="breathing-note">これは不安を消すための道具ではなく、波に乗るための道具です</div>
   <div class="breathing-meta" id="breathing-meta">0 呼吸</div>
+</div>
+
+<!-- 月1セルフチェック -->
+<div id="checkin-overlay" class="overlay checkin-overlay">
+  <button class="breathing-close" onclick="closeCheckin()" aria-label="閉じる">✕</button>
+  <div class="checkin-head">この1か月をふり返って</div>
+  <p class="checkin-sub">正確でなくて大丈夫。直感で選んでください。</p>
+  <div id="checkin-questions" class="checkin-questions"></div>
+  <button type="button" class="btn btn-primary checkin-save" onclick="saveCheckinAnswers()">保存する</button>
 </div>
 
 <!-- ボトムナビ -->

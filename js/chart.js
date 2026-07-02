@@ -5,7 +5,12 @@ const Chart = (() => {
     return r.reaction === 'しなかった' || r.competing === 'できた' || r.competing === '少しできた';
   }
 
-  function dateStr(d) { return d.toISOString().split('T')[0]; }
+  // 記録がローカル時間で「何日前」か（0＝今日）
+  function dayDiff(ts) {
+    const a = new Date(ts); a.setHours(0, 0, 0, 0);
+    const b = new Date();  b.setHours(0, 0, 0, 0);
+    return Math.round((b - a) / 86400000);
+  }
 
   // ── マイルストーン定義（目標勾配効果） ──────────────
   const TIERS = [
@@ -169,10 +174,10 @@ const Chart = (() => {
       set('ms-note', 'すべての節目を達成。あなたの積み重ねは揺るぎません。');
     }
 
-    // 日別集計
+    // 日別集計（ローカル日付）
     const byDay = {};
     all.forEach(r => {
-      const d = r.timestamp.split('T')[0];
+      const d = Storage.localDateStr(r.timestamp);
       (byDay[d] ||= { points: 0, wins: 0 });
       byDay[d].points += r.score;
       if (isWin(r)) byDay[d].wins++;
@@ -182,33 +187,29 @@ const Chart = (() => {
     const today = new Date();
     let startDays = 14;
     if (all.length) {
-      const first = new Date(all.reduce((m, r) => r.timestamp < m ? r.timestamp : m, all[0].timestamp).split('T')[0]);
-      startDays = Math.min(21, Math.max(7, Math.round((today - first) / 86400000) + 1));
+      const oldest = all.reduce((m, r) => dayDiff(r.timestamp) > m ? dayDiff(r.timestamp) : m, 0);
+      startDays = Math.min(21, Math.max(7, oldest + 1));
     }
     const series = [];
-    let cumom = 0;
-    // まず窓の開始前までの累計を加算
-    const windowStart = new Date(today); windowStart.setDate(today.getDate() - (startDays - 1));
-    all.forEach(r => { if (isWin(r) && r.timestamp.split('T')[0] < dateStr(windowStart)) cumom++; });
+    // 窓の開始前までの累計を先に加算
+    let cum = all.filter(r => isWin(r) && dayDiff(r.timestamp) > startDays - 1).length;
     for (let i = startDays - 1; i >= 0; i--) {
-      const d = new Date(today); d.setDate(today.getDate() - i);
-      const ds = dateStr(d);
-      cumom += byDay[ds]?.wins || 0;
-      series.push({ label: `${d.getMonth() + 1}/${d.getDate()}`, value: cumom });
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const ds = Storage.localDateStr(d);
+      cum += byDay[ds]?.wins || 0;
+      series.push({ label: `${d.getMonth() + 1}/${d.getDate()}`, value: cum });
     }
     const cumCanvas = document.getElementById('chart-cumulative');
     if (cumCanvas) drawArea(cumCanvas, series, '#5eead4');
 
     // 今週 vs 先週（やさしい比較）
-    const winsInRange = (startOffset, endOffset) => {
-      let c = 0;
-      all.forEach(r => {
-        if (!isWin(r)) return;
-        const diff = Math.floor((today - new Date(r.timestamp.split('T')[0])) / 86400000);
-        if (diff >= startOffset && diff < endOffset) c++;
-      });
-      return c;
-    };
+    const winsInRange = (startOffset, endOffset) =>
+      all.filter(r => {
+        if (!isWin(r)) return false;
+        const diff = dayDiff(r.timestamp);
+        return diff >= startOffset && diff < endOffset;
+      }).length;
     const thisWeek = winsInRange(0, 7);
     const lastWeek = winsInRange(7, 14);
     set('this-week', thisWeek);
