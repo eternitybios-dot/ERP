@@ -76,6 +76,13 @@ test('穏やかな日 → 1点', () => {
   assert.equal(Scoring.calculate({ type: 'calm' }), 1);
 });
 
+test('ワンタップ「確認・安心探しをしなかった」 → 21点', () => {
+  assert.equal(Scoring.calculate({
+    type: 'compulsion', reaction: null, enduranceTime: '0秒',
+    bonuses: ['確認・安心探しをしなかった'],
+  }), 21);
+});
+
 test('計画練習：取り組みだけで11点（結果に依存しない）', () => {
   assert.equal(Scoring.calculate({ type: 'compulsion', planned: true }), 11);
   assert.equal(Scoring.calculate({ type: 'tic', planned: true }), 11);

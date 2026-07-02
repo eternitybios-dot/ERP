@@ -22,7 +22,8 @@ function renderHome() {
   const score = recs.reduce((s, r) => s + r.score, 0);
   const wins = recs.filter(r =>
     r.planned === true ||
-    r.reaction === 'しなかった' || r.competing === 'できた' || r.competing === '少しできた'
+    r.reaction === 'しなかった' || r.competing === 'できた' || r.competing === '少しできた' ||
+    (r.type === 'compulsion' && Array.isArray(r.bonuses) && r.bonuses.length > 0)
   ).length;
 
   document.getElementById('today-score').textContent = score;
@@ -63,9 +64,16 @@ function quickLog(kind) {
   if (kind === 'resisted') {
     record = { ...base, type: 'compulsion', discomfortLevel: null, urgeLevel: null,
       situation: 'その他', triggers: [], reaction: 'しなかった', enduranceTime: '0秒', bonuses: [] };
+  } else if (kind === 'noreassure') {
+    record = { ...base, type: 'compulsion', discomfortLevel: null, urgeLevel: null,
+      situation: 'その他', triggers: ['確認欲求'], reaction: null, enduranceTime: '0秒',
+      bonuses: ['確認・安心探しをしなかった'] };
   } else if (kind === 'competing') {
     record = { ...base, type: 'tic', movement: 'その他', urgeLevel: null,
       awareness: true, competing: 'できた', urgePassed: true };
+  } else if (kind === 'noticed') {
+    record = { ...base, type: 'tic', movement: 'その他', urgeLevel: null,
+      awareness: true, competing: '出てしまった', urgePassed: false };
   } else if (kind === 'calm') {
     record = { ...base, type: 'calm' };
   } else { // backtolife
@@ -677,7 +685,8 @@ function renderHistory() {
 }
 
 function compulsionEntry(r) {
-  const good = r.reaction === 'しなかった';
+  const good = r.reaction === 'しなかった' || (Array.isArray(r.bonuses) && r.bonuses.length > 0);
+  const label = r.reaction || (r.bonuses && r.bonuses[0]) || '記録';
   const detail = [
     r.discomfortLevel != null ? `不快度 ${esc(r.discomfortLevel)}/10` : null,
     r.enduranceTime && r.enduranceTime !== '0秒' ? `波 ${esc(r.enduranceTime)}` : null,
@@ -689,7 +698,7 @@ function compulsionEntry(r) {
       <div class="entry-top">
         <span class="entry-time">${esc(Storage.localTimeStr(r.timestamp))}</span>
         <span class="tag tag-c">強迫</span>
-        <span class="entry-reaction${good ? ' good' : ''}">${esc(r.reaction || '記録')}</span>
+        <span class="entry-reaction${good ? ' good' : ''}">${esc(label)}</span>
         <span class="entry-score">+${esc(r.score)}</span>
         ${delBtn(r.id)}
       </div>

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f7f5f0">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="練習帳">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
@@ -61,15 +61,23 @@
           <span class="qa-icon">🛡️</span>
           <span class="qa-text">
             <b>強迫行為をしないでいられた</b>
-            <small>記録 +1 ・ 反応しなかった +15</small>
+            <small>洗浄・儀式・回数などをしなかった</small>
           </span>
           <span class="qa-pts">+16</span>
+        </button>
+        <button class="qa-btn qa-teal" onclick="quickLog('noreassure')">
+          <span class="qa-icon">🔍</span>
+          <span class="qa-text">
+            <b>確認・安心探しをしなかった</b>
+            <small>調べ直し・聞いて確かめるのをやめられた</small>
+          </span>
+          <span class="qa-pts">+21</span>
         </button>
         <button class="qa-btn qa-gold" onclick="quickLog('backtolife')">
           <span class="qa-icon">🌱</span>
           <span class="qa-text">
-            <b>不快なまま、いつもの生活に戻れた</b>
-            <small>記録 +1 ・ 反応しなかった +15 ・ 生活に戻れた +20</small>
+            <b>反応せず、いつもの生活に戻れた</b>
+            <small>不快なまま目の前のことを続けられた</small>
           </span>
           <span class="qa-pts">+36</span>
         </button>
@@ -81,9 +89,17 @@
           <span class="qa-icon">🔁</span>
           <span class="qa-text">
             <b>クセを別の動きに置き換えられた</b>
-            <small>記録 +1 ・ 気づき +5 ・ 置き換え +15 ・ 波 +10</small>
+            <small>拮抗反応で衝動の波をやり過ごせた</small>
           </span>
           <span class="qa-pts">+31</span>
+        </button>
+        <button class="qa-btn qa-lav" onclick="quickLog('noticed')">
+          <span class="qa-icon">👀</span>
+          <span class="qa-text">
+            <b>出てしまった…でもムズムズに気づけた</b>
+            <small>気づきはHRTの土台。立派な一歩</small>
+          </span>
+          <span class="qa-pts">+6</span>
         </button>
       </div>
 
