@@ -141,6 +141,51 @@ const Storage = (() => {
     localStorage.setItem(BACKUP_AT_KEY, iso);
   }
 
+  // ── 練習メニュー・今日の練習 ──────────────────────
+  const MENU_KEY = 'ocd_practice_menu';
+  const PRACTICE_TODAY_KEY = 'ocd_practice_today';
+
+  function getPracticeMenu() {
+    try { return JSON.parse(localStorage.getItem(MENU_KEY) || '[]'); }
+    catch { return []; }
+  }
+
+  function setPracticeMenu(list) {
+    localStorage.setItem(MENU_KEY, JSON.stringify(list));
+  }
+
+  // 今日の練習カードのUI状態（日付が変わると自動リセット。パスの履歴は残さない）
+  function getPracticeToday() {
+    try {
+      const t = JSON.parse(localStorage.getItem(PRACTICE_TODAY_KEY));
+      if (t && t.date === localDateStr(new Date())) return t;
+    } catch { /* fallthrough */ }
+    return { date: localDateStr(new Date()), status: 'pending', swaps: 0 };
+  }
+
+  function setPracticeToday(t) {
+    localStorage.setItem(PRACTICE_TODAY_KEY, JSON.stringify(t));
+  }
+
+  // 直近の計画練習の難易度（新しい順）
+  function getRecentPlannedDifficulties(n) {
+    const out = [];
+    const all = getAll();
+    for (let i = all.length - 1; i >= 0 && out.length < n; i--) {
+      if (all[i].planned && all[i].difficulty) out.push(all[i].difficulty);
+    }
+    return out;
+  }
+
+  // 発見（期待違反 or 学びのひとこと）を新しい順に
+  function getDiscoveries(limit) {
+    const list = getAll().filter(r =>
+      (r.insight && String(r.insight).trim()) || r.expectancy === '予想より耐えられた'
+    );
+    list.reverse();
+    return limit ? list.slice(0, limit) : list;
+  }
+
   // ── リマインダー設定 ──────────────────────────────
   const REMINDER_KEY = 'ocd_reminder';
   const REMINDER_SHOWN_KEY = 'ocd_reminder_last_shown';
@@ -169,6 +214,8 @@ const Storage = (() => {
     getAll, setAll, save, getToday, getLast7Days,
     getPracticeDays, getStreakDays, getLatest, deleteById, clearAll,
     getCheckins, setCheckins, saveCheckin,
+    getPracticeMenu, setPracticeMenu, getPracticeToday, setPracticeToday,
+    getRecentPlannedDifficulties, getDiscoveries,
     getLastBackupAt, setLastBackupAt,
     getReminder, setReminder, getReminderLastShown, setReminderLastShown,
     localDateStr, localTimeStr,

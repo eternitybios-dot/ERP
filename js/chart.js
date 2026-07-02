@@ -1,8 +1,9 @@
 const Chart = (() => {
 
-  // 「ブレイブ行動」＝強迫に反応しなかった or クセを拮抗反応に置き換えられた
+  // 「ブレイブ行動」＝強迫に反応しなかった / クセを置き換えられた / 計画練習に取り組んだ
   function isWin(r) {
-    return r.reaction === 'しなかった' || r.competing === 'できた' || r.competing === '少しできた';
+    return r.planned === true ||
+      r.reaction === 'しなかった' || r.competing === 'できた' || r.competing === '少しできた';
   }
 
   // 記録がローカル時間で「何日前」か（0＝今日）

@@ -76,6 +76,30 @@ test('穏やかな日 → 1点', () => {
   assert.equal(Scoring.calculate({ type: 'calm' }), 1);
 });
 
+test('計画練習：取り組みだけで11点（結果に依存しない）', () => {
+  assert.equal(Scoring.calculate({ type: 'compulsion', planned: true }), 11);
+  assert.equal(Scoring.calculate({ type: 'tic', planned: true }), 11);
+  // 予想よりキツくても減らない
+  assert.equal(Scoring.calculate({ type: 'compulsion', planned: true, expectancy: '予想よりキツかった' }), 11);
+});
+
+test('計画練習：期待違反で+5 → 16点', () => {
+  assert.equal(Scoring.calculate({ type: 'compulsion', planned: true, expectancy: '予想より耐えられた' }), 16);
+});
+
+test('suggestTier: やさしい3連続＋ふつう有 → ふつう提案', () => {
+  assert.equal(Scoring.suggestTier(['やさしい', 'やさしい', 'やさしい'], ['やさしい', 'ふつう']), 'ふつう');
+});
+
+test('suggestTier: 2連続や混在では提案しない', () => {
+  assert.equal(Scoring.suggestTier(['やさしい', 'やさしい'], ['やさしい', 'ふつう']), null);
+  assert.equal(Scoring.suggestTier(['ふつう', 'やさしい', 'やさしい'], ['やさしい', 'ふつう']), null);
+});
+
+test('suggestTier: メニューにふつうが無ければ提案しない', () => {
+  assert.equal(Scoring.suggestTier(['やさしい', 'やさしい', 'やさしい'], ['やさしい']), null);
+});
+
 test('breakdown の合計は常に calculate と一致する', () => {
   const cases = [
     { type: 'calm' },
@@ -84,6 +108,8 @@ test('breakdown の合計は常に calculate と一致する', () => {
     { type: 'compulsion', reaction: 'した', enduranceTime: '10秒', bonuses: [] },
     { type: 'tic', awareness: true, competing: '少しできた', urgePassed: true },
     { type: 'tic', awareness: false, competing: '出てしまった', urgePassed: false },
+    { type: 'compulsion', planned: true, expectancy: '予想より耐えられた', insight: '案外いけた' },
+    { type: 'tic', planned: true },
   ];
   for (const c of cases) {
     const sum = Scoring.breakdown(c).reduce((s, [, p]) => s + p, 0);
@@ -165,6 +191,36 @@ test('getPracticeDays はユニーク日数', () => {
   S.save({ id: 'p2', timestamp: isoDaysAgo(0), type: 'calm', score: 1 });
   S.save({ id: 'p3', timestamp: isoDaysAgo(5), type: 'calm', score: 1 });
   assert.equal(S.getPracticeDays(), 2);
+});
+
+test('練習メニューの保存・取得', () => {
+  localStorage.clear();
+  const S = load('storage.js', 'Storage');
+  S.setPracticeMenu([{ id: 'm1', name: 'テスト練習', difficulty: 'やさしい', type: 'compulsion' }]);
+  const menu = S.getPracticeMenu();
+  assert.equal(menu.length, 1);
+  assert.equal(menu[0].name, 'テスト練習');
+});
+
+test('getRecentPlannedDifficulties は計画練習のみ新しい順に返す', () => {
+  localStorage.clear();
+  const S = load('storage.js', 'Storage');
+  S.save({ id: 'r1', timestamp: isoDaysAgo(3), type: 'compulsion', planned: true, difficulty: 'やさしい', score: 11 });
+  S.save({ id: 'r2', timestamp: isoDaysAgo(2), type: 'calm', score: 1 }); // 対象外
+  S.save({ id: 'r3', timestamp: isoDaysAgo(1), type: 'tic', planned: true, difficulty: 'ふつう', score: 11 });
+  assert.deepEqual(S.getRecentPlannedDifficulties(3), ['ふつう', 'やさしい']);
+});
+
+test('getDiscoveries は期待違反 or 学びメモのみ・新しい順', () => {
+  localStorage.clear();
+  const S = load('storage.js', 'Storage');
+  S.save({ id: 'd1', timestamp: isoDaysAgo(2), type: 'compulsion', expectancy: '予想より耐えられた', score: 21 });
+  S.save({ id: 'd2', timestamp: isoDaysAgo(1), type: 'compulsion', expectancy: 'だいたい予想どおり', score: 16 }); // 対象外
+  S.save({ id: 'd3', timestamp: isoDaysAgo(0), type: 'tic', planned: true, insight: '波はすぐ引いた', score: 11 });
+  const d = S.getDiscoveries();
+  assert.equal(d.length, 2);
+  assert.equal(d[0].id, 'd3');
+  assert.equal(d[1].id, 'd1');
 });
 
 test('checkin の保存・取得', () => {

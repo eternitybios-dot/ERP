@@ -25,6 +25,10 @@ const Scoring = (() => {
   // 期待違反（予想より耐えられた）＝抑制学習の核心。発見に加点
   const EXPECTANCY_BONUS = 5;
 
+  // 計画練習：「取り組んだこと」自体への加点。
+  // タイマーの長さや途中で強迫行為が出たかどうかで増減させない（結果でなく行動に随伴させる）
+  const PRACTICE_BONUS = 10;
+
   // ── クセ・チック（HRT：気づき＋拮抗反応）系 ──────
   const COMPETING_SCORES = {
     'できた': 15,      // 拮抗反応（別の動き）をやり切った
@@ -53,13 +57,38 @@ const Scoring = (() => {
 
   function calculate(record) {
     if (record.type === 'calm') return 1;         // 穏やかな日の記録（欠測と区別するため）
+    if (record.planned) {
+      let score = 1 + PRACTICE_BONUS;
+      if (record.expectancy === '予想より耐えられた') score += EXPECTANCY_BONUS;
+      return score;
+    }
     return record.type === 'tic' ? calcTic(record) : calcCompulsion(record);
+  }
+
+  // 今日の練習の難易度提案ルール（決め打ち・テスト可能）:
+  // 直近3回の計画練習がすべて「やさしい」で、メニューに「ふつう」があれば「ふつう」を提案
+  function suggestTier(recentDifficulties, availableTiers) {
+    if (
+      recentDifficulties.length >= 3 &&
+      recentDifficulties.slice(0, 3).every(d => d === 'やさしい') &&
+      availableTiers.includes('ふつう')
+    ) {
+      return 'ふつう';
+    }
+    return null;
   }
 
   // 点数の内訳（なぜその点数か）を [ラベル, 点数] の配列で返す
   function breakdown(record) {
     if (record.type === 'calm') {
       return [['穏やかな一日を記録できた', 1]];
+    }
+    if (record.planned) {
+      const items = [['記録できた', 1], ['計画した練習に取り組めた', PRACTICE_BONUS]];
+      if (record.expectancy === '予想より耐えられた') {
+        items.push(['予想より耐えられた（発見！）', EXPECTANCY_BONUS]);
+      }
+      return items;
     }
     const items = [['記録できた', 1]];
     if (record.type === 'tic') {
@@ -81,7 +110,8 @@ const Scoring = (() => {
   }
 
   return {
-    calculate, breakdown,
-    ENDURANCE_SCORES, REACTION_SCORES, BONUS_SCORES, COMPETING_SCORES, EXPECTANCY_BONUS,
+    calculate, breakdown, suggestTier,
+    ENDURANCE_SCORES, REACTION_SCORES, BONUS_SCORES, COMPETING_SCORES,
+    EXPECTANCY_BONUS, PRACTICE_BONUS,
   };
 })();

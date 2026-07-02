@@ -13,7 +13,7 @@ function showView(name) {
   if (name === 'erp') { recordType = 'compulsion'; updateQuickFill(); }
   if (name === 'hrt') { recordType = 'tic'; updateQuickFill(); }
   if (name === 'history') renderHistory();
-  if (name === 'graph') { Chart.render(); renderCheckin(); }
+  if (name === 'graph') { Chart.render(); renderCheckin(); renderDiscoveries(); }
 }
 
 // ══ ホーム ═══════════════════════════════════════════
@@ -21,6 +21,7 @@ function renderHome() {
   const recs = Storage.getToday();
   const score = recs.reduce((s, r) => s + r.score, 0);
   const wins = recs.filter(r =>
+    r.planned === true ||
     r.reaction === 'しなかった' || r.competing === 'できた' || r.competing === '少しできた'
   ).length;
 
@@ -37,7 +38,18 @@ function renderHome() {
     '完璧でなくて大丈夫。積み重ねた分だけ、確実に前へ進んでいます。',
   ];
   const idx = score === 0 ? 0 : (Math.floor(Date.now() / 300000) % (MSGS.length - 1)) + 1;
-  document.getElementById('home-message').textContent = MSGS[idx];
+  let msg = MSGS[idx];
+
+  // 週1回ほどの低頻度で「あなたの発見」を再表示（間隔をあけた想起。安心探し化を防ぐため頻度は上げない）
+  const discs = Storage.getDiscoveries(30);
+  const dayNum = parseInt(Storage.localDateStr(new Date()).split('-').join(''), 10);
+  if (discs.length && dayNum % 7 === 0) {
+    const d = discs[dayNum % discs.length];
+    msg = `あなたの発見：『${d.insight || '予想より耐えられた'}』`;
+  }
+  document.getElementById('home-message').textContent = msg;
+
+  renderPractice();
 }
 
 // ══ ワンタップ記録 ═══════════════════════════════════
@@ -81,7 +93,7 @@ const CR_GUIDES = {
 function initForms() {
   // スライダー
   [['discomfort-slider', 'discomfort-value'], ['urge-slider', 'urge-value'],
-   ['tic-urge-slider', 'tic-urge-value']].forEach(([s, v]) => {
+   ['tic-urge-slider', 'tic-urge-value'], ['p-predict', 'p-predict-val']].forEach(([s, v]) => {
     const slider = document.getElementById(s);
     slider.addEventListener('input', () => { document.getElementById(v).textContent = slider.value; });
   });
@@ -125,6 +137,16 @@ function initForms() {
   document.getElementById('history-list').addEventListener('click', e => {
     const btn = e.target.closest('.delete-btn');
     if (btn) deleteRecord(btn.dataset.id);
+  });
+
+  // 練習メニューの削除・テンプレ追加もデリゲーション
+  document.getElementById('menu-list').addEventListener('click', e => {
+    const btn = e.target.closest('.menu-del');
+    if (btn) deleteMenuItem(btn.dataset.id);
+  });
+  document.getElementById('menu-templates').addEventListener('click', e => {
+    const btn = e.target.closest('.menu-tpl');
+    if (btn) addTemplateItem(parseInt(btn.dataset.idx));
   });
 }
 
@@ -309,6 +331,278 @@ function stopCrTimer(msg) {
   else disp.style.display = 'none';
 }
 
+// ══ 今日の練習（計画的曝露／衝動曝露） ═══════════════
+const PRACTICE_TEMPLATES = [
+  { name: '気になる物を30秒ながめて、そのまま生活に戻る', difficulty: 'やさしい', type: 'compulsion' },
+  { name: '少し気になる場所に触れて、洗わず・拭かずに次の行動へ', difficulty: 'ふつう', type: 'compulsion' },
+  { name: '確認したくなっても1回だけにして、その場を離れる', difficulty: 'ふつう', type: 'compulsion' },
+  { name: '嫌なイメージが浮かんでも、打ち消さずに30秒おいてみる', difficulty: 'ふつう', type: 'compulsion' },
+  { name: 'いつもの回数・順番をわざと少し崩してみる', difficulty: 'チャレンジ', type: 'compulsion' },
+  { name: '衝動をわざと呼んで、30秒チックを出さずに波に乗る', difficulty: 'やさしい', type: 'tic' },
+  { name: '鏡の前で1分、ムズムズが来る瞬間に気づく練習', difficulty: 'やさしい', type: 'tic' },
+  { name: '衝動の波に乗る時間を1分にのばしてみる', difficulty: 'ふつう', type: 'tic' },
+];
+
+const TIER_CLASS = { 'やさしい': 'tier-easy', 'ふつう': 'tier-mid', 'チャレンジ': 'tier-hard' };
+
+function suggestedItem() {
+  const menu = Storage.getPracticeMenu();
+  if (!menu.length) return null;
+  const today = Storage.getPracticeToday();
+  const recent = Storage.getRecentPlannedDifficulties(3);
+  const tiers = [...new Set(menu.map(m => m.difficulty))];
+  const forced = Scoring.suggestTier(recent, tiers);
+  let pool = forced ? menu.filter(m => m.difficulty === forced) : menu;
+  if (!pool.length) pool = menu;
+  const seed = parseInt(Storage.localDateStr(new Date()).split('-').join(''), 10);
+  return pool[(seed + (today.swaps || 0)) % pool.length];
+}
+
+function renderPractice() {
+  const card = document.getElementById('practice-card');
+  if (!card) return;
+  const menu = Storage.getPracticeMenu();
+  const today = Storage.getPracticeToday();
+
+  if (menu.length === 0) {
+    card.innerHTML = `
+      <div class="practice-head"><span class="practice-title">🎯 今日の練習</span></div>
+      <p class="practice-intro">症状が出るのを待たずに、毎日1つ「小さな練習」を自分から仕掛けると回復が早まるよ。</p>
+      <button type="button" class="btn btn-soft" onclick="openMenuEditor()">練習メニューをつくる</button>`;
+    return;
+  }
+  if (today.status === 'done') {
+    card.innerHTML = `<div class="practice-collapsed done">✓ 今日の練習に取り組めた${today.itemName ? `：${esc(today.itemName)}` : ''}</div>`;
+    return;
+  }
+  if (today.status === 'passed') {
+    card.innerHTML = `
+      <div class="practice-collapsed">今日はおやすみ。また明日、気が向いたらで大丈夫。
+        <button type="button" class="practice-link" onclick="resumePractice()">やっぱりやる</button>
+      </div>`;
+    return;
+  }
+  const item = suggestedItem();
+  card.innerHTML = `
+    <div class="practice-head">
+      <span class="practice-title">🎯 今日の練習</span>
+      <span class="practice-tag ${TIER_CLASS[item.difficulty] || ''}">${esc(item.difficulty)}</span>
+    </div>
+    <div class="practice-name">${esc(item.name)}</div>
+    <div class="practice-actions">
+      <button type="button" class="btn btn-primary" onclick="startPractice()">やってみる</button>
+      <button type="button" class="btn btn-soft" onclick="passPractice()">今日はパス</button>
+    </div>
+    <div class="practice-links">
+      <button type="button" class="practice-link" onclick="swapPractice()">べつの練習にする</button>
+      <button type="button" class="practice-link" onclick="openMenuEditor()">メニューを編集</button>
+    </div>`;
+}
+
+function passPractice() {
+  const t = Storage.getPracticeToday();
+  t.status = 'passed';
+  Storage.setPracticeToday(t);
+  renderPractice();
+}
+
+function resumePractice() {
+  const t = Storage.getPracticeToday();
+  t.status = 'pending';
+  Storage.setPracticeToday(t);
+  renderPractice();
+}
+
+function swapPractice() {
+  const t = Storage.getPracticeToday();
+  t.swaps = (t.swaps || 0) + 1;
+  Storage.setPracticeToday(t);
+  renderPractice();
+}
+
+// ── 練習メニュー編集 ─────────────────────────────────
+function openMenuEditor() {
+  renderMenuEditor();
+  document.getElementById('menu-overlay').classList.add('show');
+}
+
+function closeMenuEditor() {
+  document.getElementById('menu-overlay').classList.remove('show');
+  renderPractice();
+}
+
+function renderMenuEditor() {
+  const menu = Storage.getPracticeMenu();
+  const list = document.getElementById('menu-list');
+  list.innerHTML = menu.length
+    ? menu.map(m => `
+        <div class="menu-item">
+          <span class="practice-tag ${TIER_CLASS[m.difficulty] || ''}">${esc(m.difficulty)}</span>
+          <span class="menu-item-name">${esc(m.name)}</span>
+          <button type="button" class="delete-btn menu-del" data-id="${esc(m.id)}" aria-label="削除">
+            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </div>`).join('')
+    : '<p class="menu-empty">まだ練習がありません。下のテンプレから追加するか、自分で書いてみよう。</p>';
+
+  const names = new Set(menu.map(m => m.name));
+  const tpl = document.getElementById('menu-templates');
+  const remaining = PRACTICE_TEMPLATES.filter(t => !names.has(t.name));
+  tpl.innerHTML = remaining.length
+    ? '<div class="menu-tpl-label">テンプレから追加</div>' + remaining.map((t, i) => `
+        <button type="button" class="menu-tpl" data-idx="${PRACTICE_TEMPLATES.indexOf(t)}">
+          ＋ ${esc(t.name)} <small>（${esc(t.difficulty)}）</small>
+        </button>`).join('')
+    : '';
+}
+
+function addMenuItem() {
+  const input = document.getElementById('menu-name');
+  const name = input.value.trim().slice(0, 60);
+  if (!name) { alert('練習の内容を入れてください'); return; }
+  const difficulty = selectedSingle('menu-diff') || 'ふつう';
+  const type = selectedSingle('menu-type') || 'compulsion';
+  const menu = Storage.getPracticeMenu();
+  menu.push({ id: `${Date.now()}_${Math.random().toString(36).slice(2, 5)}`, name, difficulty, type });
+  Storage.setPracticeMenu(menu);
+  input.value = '';
+  renderMenuEditor();
+}
+
+function addTemplateItem(idx) {
+  const t = PRACTICE_TEMPLATES[idx];
+  if (!t) return;
+  const menu = Storage.getPracticeMenu();
+  menu.push({ id: `${Date.now()}_${Math.random().toString(36).slice(2, 5)}`, ...t });
+  Storage.setPracticeMenu(menu);
+  renderMenuEditor();
+}
+
+function deleteMenuItem(id) {
+  Storage.setPracticeMenu(Storage.getPracticeMenu().filter(m => m.id !== id));
+  renderMenuEditor();
+}
+
+// ── ガイド付き練習フロー（予想 → 実施 → ふり返り） ──
+let practiceItem = null;
+let pTimerId = null, pElapsed = 0;
+
+function startPractice() {
+  practiceItem = suggestedItem();
+  if (!practiceItem) return;
+
+  document.getElementById('p-name').textContent = practiceItem.name;
+
+  // 前回の発見を勇気づけとして表示（練習の文脈に限定）
+  const disc = Storage.getDiscoveries(1)[0];
+  const dEl = document.getElementById('p-discovery');
+  if (disc) {
+    dEl.textContent = `前回のあなたの発見：『${disc.insight || '予想より耐えられた'}』`;
+    dEl.style.display = 'block';
+  } else {
+    dEl.style.display = 'none';
+  }
+
+  // リセット
+  document.getElementById('p-predict').value = 5;
+  document.getElementById('p-predict-val').textContent = '5';
+  document.querySelectorAll('#p-expectancy .chip').forEach(c => {
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed', 'false');
+  });
+  document.getElementById('p-insight').value = '';
+  showPracticeStep(1);
+  document.getElementById('practice-overlay').classList.add('show');
+}
+
+function showPracticeStep(n) {
+  [1, 2, 3].forEach(i => {
+    document.getElementById(`p-step-${i}`).style.display = i === n ? 'block' : 'none';
+  });
+}
+
+function practiceStep(n) {
+  if (n === 2) {
+    const isTic = practiceItem.type === 'tic';
+    document.getElementById('p-guide').textContent = isTic
+      ? 'チックを出さずに、ムズムズの波に乗ろう。波は必ず引いていくよ。'
+      : '不快やムズムズが来ても、確認・打ち消し・安心探しはしない。不快はあっていい。波に乗ったまま続けよう。';
+    document.getElementById('p-hint').textContent = isTic
+      ? 'まずは30秒からでOK。慣れてきたら少しずつのばそう。'
+      : '時間は目安。短くても、取り組んだこと自体に価値があるよ。';
+    pElapsed = 0;
+    updatePracticeTimer();
+    clearInterval(pTimerId);
+    pTimerId = setInterval(() => { pElapsed++; updatePracticeTimer(); }, 1000);
+    showPracticeStep(2);
+  } else if (n === 3) {
+    clearInterval(pTimerId);
+    pTimerId = null;
+    showPracticeStep(3);
+  }
+}
+
+function updatePracticeTimer() {
+  const m = Math.floor(pElapsed / 60);
+  const s = pElapsed % 60;
+  document.getElementById('p-timer').textContent = `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function finishPractice() {
+  const rec = {
+    id: `${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+    timestamp: new Date().toISOString(),
+    type: practiceItem.type,
+    planned: true,
+    practiceName: practiceItem.name,
+    difficulty: practiceItem.difficulty,
+    predicted: parseInt(document.getElementById('p-predict').value),
+    expectancy: selectedSingle('p-expectancy'),
+    insight: document.getElementById('p-insight').value.trim().slice(0, 30),
+    practiceSeconds: pElapsed,
+    memo: '',
+    score: 0,
+  };
+  rec.score = Scoring.calculate(rec);
+  Storage.save(rec);
+
+  const t = Storage.getPracticeToday();
+  t.status = 'done';
+  t.itemName = practiceItem.name;
+  Storage.setPracticeToday(t);
+
+  closePracticeOverlay();
+  showFeedback(rec);
+}
+
+function closePracticeOverlay() {
+  clearInterval(pTimerId);
+  pTimerId = null;
+  document.getElementById('practice-overlay').classList.remove('show');
+}
+
+// ── 発見ノート（がんばりタブ） ───────────────────────
+function renderDiscoveries() {
+  const listEl = document.getElementById('discovery-list');
+  if (!listEl) return;
+  const discs = Storage.getDiscoveries(8);
+  if (!discs.length) {
+    listEl.innerHTML = '<p class="discovery-empty">練習のふり返りで「予想より耐えられた」や発見のひとことを記録すると、ここにたまっていくよ。</p>';
+    return;
+  }
+  listEl.innerHTML = discs.map(r => {
+    const d = Storage.localDateStr(r.timestamp);
+    const [, m, day] = d.split('-');
+    const context = r.practiceName || r.situation || r.movement || '';
+    const text = r.insight ? `『${esc(r.insight)}』` : '予想より耐えられた ✨';
+    return `
+      <div class="discovery-item">
+        <span class="discovery-date">${parseInt(m)}/${parseInt(day)}</span>
+        <span class="discovery-text">${text}${context ? `<small>${esc(context)}</small>` : ''}</span>
+      </div>`;
+  }).join('');
+}
+
 // ══ 呼吸ガイド（衝動の波をやり過ごす） ═══════════════
 let breathTimer = null, breathCount = 0;
 
@@ -366,6 +660,7 @@ function renderHistory() {
       const dayScore = recs.reduce((s, r) => s + r.score, 0);
       const [, m, d] = date.split('-');
       const rows = recs.slice().reverse().map(r => {
+        if (r.planned) return plannedEntry(r);
         if (r.type === 'calm') return calmEntry(r);
         if (r.type === 'tic') return ticEntry(r);
         return compulsionEntry(r);
@@ -424,6 +719,26 @@ function ticEntry(r) {
     </div>`;
 }
 
+function plannedEntry(r) {
+  const good = r.expectancy === '予想より耐えられた';
+  const detail = [
+    r.predicted != null ? `予想 ${esc(r.predicted)}/10` : null,
+    r.expectancy ? esc(r.expectancy) + (good ? ' ✨' : '') : null,
+  ].filter(Boolean).join('　/　');
+  return `
+    <div class="history-entry">
+      <div class="entry-top">
+        <span class="entry-time">${esc(Storage.localTimeStr(r.timestamp))}</span>
+        <span class="tag tag-p">練習</span>
+        <span class="entry-reaction good">${esc(r.practiceName || '計画練習')}</span>
+        <span class="entry-score">+${esc(r.score)}</span>
+        ${delBtn(r.id)}
+      </div>
+      ${detail ? `<div class="entry-detail">${detail}</div>` : ''}
+      ${r.insight ? `<div class="entry-memo">💡 ${esc(r.insight)}</div>` : ''}
+    </div>`;
+}
+
 function calmEntry(r) {
   return `
     <div class="history-entry calm">
@@ -465,6 +780,7 @@ function exportBackup() {
     exportedAt: new Date().toISOString(),
     records,
     checkins: Storage.getCheckins(),
+    practiceMenu: Storage.getPracticeMenu(),
   };
   const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -508,6 +824,14 @@ function importBackup(input) {
       const addedC = checkins.filter(c => c && c.date && !cDates.has(c.date));
       if (addedC.length) {
         Storage.setCheckins([...exC, ...addedC].sort((a, b) => a.date.localeCompare(b.date)));
+      }
+
+      // 練習メニューもマージ（IDで重複排除）
+      if (!Array.isArray(parsed) && Array.isArray(parsed.practiceMenu)) {
+        const exM = Storage.getPracticeMenu();
+        const mIds = new Set(exM.map(m => m.id));
+        const addedM = parsed.practiceMenu.filter(m => m && m.id && m.name && !mIds.has(m.id));
+        if (addedM.length) Storage.setPracticeMenu([...exM, ...addedM]);
       }
 
       alert(`復元完了。記録${added.length}件${addedC.length ? `・セルフチェック${addedC.length}件` : ''}を追加しました。`);

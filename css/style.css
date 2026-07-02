@@ -184,6 +184,113 @@ body::before {
 .calm-btn:active { transform: scale(0.98); }
 .calm-pts { font-weight: 800; color: var(--gold); }
 
+/* ── 今日の練習 ─────────────────────────────────── */
+.practice-card {
+  background: linear-gradient(150deg, rgba(183,148,246,0.10), var(--card) 65%);
+  border: 1px solid rgba(183,148,246,0.24);
+  border-radius: 18px; padding: 16px; margin-bottom: 16px;
+}
+.practice-card:empty { display: none; }
+.practice-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.practice-title { font-size: 14px; font-weight: 800; }
+.practice-tag {
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; flex-shrink: 0;
+}
+.tier-easy { background: rgba(94,234,212,0.14); color: var(--teal); }
+.tier-mid { background: rgba(244,184,106,0.14); color: var(--gold); }
+.tier-hard { background: rgba(183,148,246,0.18); color: var(--lav); }
+.practice-intro { font-size: 13px; color: var(--sub); line-height: 1.7; margin-bottom: 12px; }
+.practice-name { font-size: 15.5px; font-weight: 700; line-height: 1.55; margin-bottom: 14px; }
+.practice-actions { display: flex; gap: 9px; }
+.practice-actions .btn { flex: 1; min-height: 48px; padding: 12px; font-size: 15px; }
+.practice-links { display: flex; gap: 16px; justify-content: center; margin-top: 10px; }
+.practice-link {
+  background: none; border: none; color: var(--sub); font-size: 12px;
+  font-family: inherit; cursor: pointer; text-decoration: underline;
+  text-underline-offset: 3px; padding: 4px;
+}
+.practice-collapsed { font-size: 13px; color: var(--sub); line-height: 1.7; }
+.practice-collapsed.done { color: var(--teal); }
+
+/* ── 練習フロー ─────────────────────────────────── */
+.practice-overlay {
+  background: rgba(14,16,32,0.98);
+  justify-content: flex-start; overflow-y: auto;
+  padding: calc(var(--safe-t) + 64px) 26px 40px;
+  text-align: left;
+}
+.p-step { width: 100%; max-width: 400px; margin: 0 auto; }
+.p-kicker { font-size: 12px; font-weight: 700; color: var(--lav); letter-spacing: 0.08em; margin-bottom: 10px; }
+.p-name { font-size: 19px; font-weight: 800; line-height: 1.5; margin-bottom: 16px; }
+.p-discovery {
+  background: rgba(94,234,212,0.07); border-left: 3px solid var(--teal);
+  border-radius: 10px; padding: 10px 14px;
+  font-size: 12.5px; color: #b9f3ea; line-height: 1.6; margin-bottom: 18px;
+}
+.p-q { display: flex; align-items: baseline; gap: 6px; font-size: 14px; font-weight: 600; margin: 18px 0 12px; }
+.p-slider-row { margin-bottom: 26px; }
+.p-guide { font-size: 15.5px; line-height: 1.8; margin-bottom: 8px; }
+.p-timer {
+  text-align: center; font-size: 56px; font-weight: 800; color: var(--teal);
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em; padding: 18px 0 6px;
+}
+.p-hint { text-align: center; font-size: 12.5px; color: var(--sub); line-height: 1.6; margin-bottom: 22px; }
+.p-chips { margin-bottom: 4px; }
+.p-insight {
+  width: 100%; background: var(--card2); border: 1.5px solid transparent;
+  border-radius: 12px; padding: 13px; font-size: 15px; color: var(--text);
+  font-family: inherit; outline: none; margin-bottom: 20px; min-height: 48px;
+}
+.p-insight:focus { border-color: rgba(94,234,212,0.4); }
+.p-note { font-size: 12px; color: var(--sub); line-height: 1.7; text-align: center; margin-top: 14px; }
+
+/* ── 練習メニュー編集 ───────────────────────────── */
+.menu-overlay {
+  background: rgba(14,16,32,0.98);
+  justify-content: flex-start; overflow-y: auto;
+  padding: calc(var(--safe-t) + 64px) 26px 40px;
+  text-align: left;
+}
+.menu-overlay .checkin-head { width: 100%; max-width: 400px; margin: 0 auto 6px; }
+.menu-caution {
+  width: 100%; max-width: 400px; margin: 0 auto 18px;
+  font-size: 12.5px; color: #e8c99a; line-height: 1.7;
+  background: rgba(244,184,106,0.08); border-radius: 10px; padding: 10px 14px;
+}
+.menu-list, .menu-add, .menu-templates { width: 100%; max-width: 400px; margin: 0 auto; }
+.menu-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 11px 12px; margin-bottom: 8px;
+}
+.menu-item-name { flex: 1; font-size: 13.5px; line-height: 1.5; }
+.menu-empty { font-size: 13px; color: var(--sub); line-height: 1.7; padding: 8px 2px 4px; }
+.menu-add { margin-top: 16px; }
+.menu-add-row { margin: 10px 0; }
+.menu-templates { margin-top: 22px; }
+.menu-tpl-label { font-size: 12px; font-weight: 700; color: var(--sub); letter-spacing: 0.06em; margin-bottom: 9px; }
+.menu-tpl {
+  display: block; width: 100%; text-align: left;
+  background: var(--card2); border: 1px dashed var(--line);
+  border-radius: 12px; padding: 11px 14px; margin-bottom: 8px;
+  color: var(--text); font-size: 13px; font-family: inherit;
+  cursor: pointer; line-height: 1.5; min-height: 44px;
+}
+.menu-tpl small { color: var(--sub); }
+
+/* ── 発見ノート ─────────────────────────────────── */
+.discovery-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+.discovery-item {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 9px 0; border-bottom: 1px solid var(--line);
+}
+.discovery-item:last-child { border-bottom: none; }
+.discovery-date { flex-shrink: 0; font-size: 11px; color: var(--sub); font-variant-numeric: tabular-nums; }
+.discovery-text { font-size: 13.5px; line-height: 1.6; }
+.discovery-text small { display: block; color: var(--sub); font-size: 11px; margin-top: 2px; }
+.discovery-empty { font-size: 12.5px; color: var(--sub); line-height: 1.7; }
+.discovery-note { margin-top: 12px; font-size: 11px; color: #6b769c; line-height: 1.7; }
+
 /* ── Reminder card ──────────────────────────────── */
 .reminder-card {
   background: var(--card); border: 1px solid var(--line);
@@ -402,6 +509,7 @@ body::before {
 .tag-c { background: rgba(94,234,212,0.14); color: var(--teal); }
 .tag-t { background: rgba(183,148,246,0.16); color: var(--lav); }
 .tag-calm { background: rgba(244,184,106,0.14); color: var(--gold); }
+.tag-p { background: rgba(183,148,246,0.16); color: var(--lav); }
 .entry-score.gold { color: var(--gold); }
 .entry-reaction { font-size: 12px; color: var(--sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .entry-reaction.good { color: var(--teal); }

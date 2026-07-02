@@ -35,6 +35,9 @@
         <div class="score-sub" id="home-message"></div>
       </div>
 
+      <!-- 今日の練習 -->
+      <div class="practice-card" id="practice-card"></div>
+
       <div class="stats-grid">
         <div class="stat-item">
           <span id="today-count" class="stat-num">0</span>
@@ -372,6 +375,13 @@
       <div class="chart-wrap"><canvas id="chart-scores"></canvas></div>
       <div class="chart-wrap"><canvas id="chart-reactions"></canvas></div>
 
+      <!-- 発見ノート -->
+      <div class="discovery-card">
+        <div class="checkin-title">💡 あなたの発見<span class="lbl-hint">学びの足あと</span></div>
+        <div id="discovery-list"></div>
+        <p class="discovery-note">これはお守りではなく、積み上げた学びの記録。不安なときに読み返して安心するためのものではないよ。</p>
+      </div>
+
       <!-- 月1セルフチェック -->
       <div class="checkin-card">
         <div class="checkin-title">月1セルフチェック<span class="lbl-hint">任意・約1分</span></div>
@@ -419,6 +429,72 @@
   <p class="checkin-sub">正確でなくて大丈夫。直感で選んでください。</p>
   <div id="checkin-questions" class="checkin-questions"></div>
   <button type="button" class="btn btn-primary checkin-save" onclick="saveCheckinAnswers()">保存する</button>
+</div>
+
+<!-- ガイド付き練習フロー -->
+<div id="practice-overlay" class="overlay practice-overlay">
+  <button class="breathing-close" onclick="closePracticeOverlay()" aria-label="閉じる">✕</button>
+
+  <div class="p-step" id="p-step-1">
+    <div class="p-kicker">今日の練習</div>
+    <div class="p-name" id="p-name"></div>
+    <div class="p-discovery" id="p-discovery" style="display:none"></div>
+    <div class="p-q">どれくらい耐えられそう？<span class="lbl-scale">／10</span></div>
+    <div class="slider-row p-slider-row">
+      <input type="range" id="p-predict" class="slider" min="0" max="10" value="5" step="1">
+      <span class="slider-val" id="p-predict-val">5</span>
+    </div>
+    <button type="button" class="btn btn-primary" onclick="practiceStep(2)">はじめる</button>
+  </div>
+
+  <div class="p-step" id="p-step-2" style="display:none">
+    <div class="p-kicker">実施中</div>
+    <div class="p-guide" id="p-guide"></div>
+    <div class="p-timer" id="p-timer">0:00</div>
+    <div class="p-hint" id="p-hint"></div>
+    <button type="button" class="btn btn-primary" onclick="practiceStep(3)">おわる（ふり返りへ）</button>
+  </div>
+
+  <div class="p-step" id="p-step-3" style="display:none">
+    <div class="p-kicker">ふり返り</div>
+    <div class="p-q">予想とくらべてどうだった？</div>
+    <div class="chip-group single big p-chips" id="p-expectancy">
+      <div class="chip" data-value="予想より耐えられた">予想より耐えられた <small>+5</small></div>
+      <div class="chip" data-value="だいたい予想どおり">予想どおり</div>
+      <div class="chip" data-value="予想よりキツかった">キツかった</div>
+    </div>
+    <div class="p-q">今日の発見をひとこと<span class="lbl-hint">任意・30字まで</span></div>
+    <input type="text" id="p-insight" class="p-insight" maxlength="30" placeholder="例：思ったよりすぐ波が引いた">
+    <button type="button" class="btn btn-primary" onclick="finishPractice()">記録する</button>
+    <p class="p-note">途中で強迫行為が出ていても、取り組んだこと自体が+10点。減点はないよ。</p>
+  </div>
+</div>
+
+<!-- 練習メニュー編集 -->
+<div id="menu-overlay" class="overlay menu-overlay">
+  <button class="breathing-close" onclick="closeMenuEditor()" aria-label="閉じる">✕</button>
+  <div class="checkin-head">練習メニュー</div>
+  <p class="menu-caution">「やってみよう」と思える軽め〜中くらいの練習にするのがコツ。つらすぎるテーマは専門家と一緒に扱ってね。</p>
+  <div id="menu-list" class="menu-list"></div>
+  <div class="menu-add">
+    <input type="text" id="menu-name" class="p-insight" maxlength="60"
+      placeholder="練習の内容（例：ドアノブに触れて手を洗わず次へ）">
+    <div class="menu-add-row">
+      <div class="chip-group single" id="menu-diff">
+        <div class="chip" data-value="やさしい">やさしい</div>
+        <div class="chip selected" data-value="ふつう">ふつう</div>
+        <div class="chip" data-value="チャレンジ">チャレンジ</div>
+      </div>
+    </div>
+    <div class="menu-add-row">
+      <div class="chip-group single" id="menu-type">
+        <div class="chip selected" data-value="compulsion">強迫</div>
+        <div class="chip" data-value="tic">クセ・チック</div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-primary" onclick="addMenuItem()">追加する</button>
+  </div>
+  <div class="menu-templates" id="menu-templates"></div>
 </div>
 
 <!-- ボトムナビ -->
