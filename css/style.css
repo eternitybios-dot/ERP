@@ -22,10 +22,16 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+/* iOS 26のWebKitバグ対策：スタンドアロン時にレイアウトビューポートが
+   画面下端より手前で終わり、fixed要素の下に帯が出る。
+   キャンバス背景（html）をナビと同じ白にして、帯をナビの続きに見せる */
+html {
+  background: #ffffff;
+}
+
 html, body {
   height: 100%;
   overflow: hidden;
-  background: var(--bg);
   color: var(--text);
   color-scheme: light;
   font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans',
@@ -34,6 +40,10 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   letter-spacing: 0.01em;
+}
+
+body {
+  background: var(--bg);
 }
 
 body::before {
@@ -630,7 +640,7 @@ body::before {
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
   height: calc(var(--nav-h) + var(--safe-b)); padding-bottom: var(--safe-b);
-  background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--line);
   display: flex; justify-content: space-around; align-items: center;
 }
