@@ -214,8 +214,10 @@ function submitTic() {
 }
 
 let feedbackTimer = null;
+let lastRecordId = null;
 
 function showFeedback(record) {
+  lastRecordId = record.id;
   const fb = document.getElementById('record-feedback');
   document.getElementById('feedback-score').textContent = `+${record.score}点`;
   const items = Scoring.breakdown(record);
@@ -245,6 +247,23 @@ function closeFeedback() {
   // ホーム表示中でも点数を確実に更新する
   if (document.getElementById('view-home').classList.contains('active')) renderHome();
   else showView('home');
+}
+
+// まちがえて押したときの取り消し（再入力は促さない＝完璧な記録を求めない）
+function undoLastRecord(e) {
+  e.stopPropagation();
+  if (lastRecordId) {
+    const rec = Storage.getAll().find(r => r.id === lastRecordId);
+    Storage.deleteById(lastRecordId);
+    lastRecordId = null;
+    // 計画練習の取り消しなら、今日の練習カードを未実施に戻す
+    if (rec && rec.planned) {
+      const t = Storage.getPracticeToday();
+      t.status = 'pending';
+      Storage.setPracticeToday(t);
+    }
+  }
+  closeFeedback();
 }
 
 function resetForms() {
@@ -391,7 +410,10 @@ function renderPractice() {
     card.innerHTML = `
       <div class="practice-head"><span class="practice-title">🎯 今日の練習</span></div>
       <p class="practice-intro">症状が出るのを待たずに、毎日1つ「小さな練習」を自分から仕掛けると回復が早まるよ。</p>
-      <button type="button" class="btn btn-soft" onclick="openMenuEditor()">練習メニューをつくる</button>`;
+      <div class="practice-actions">
+        <button type="button" class="btn btn-primary" onclick="quickStartMenu()">おまかせで始める</button>
+        <button type="button" class="btn btn-soft" onclick="openMenuEditor()">自分でつくる</button>
+      </div>`;
     return;
   }
   if (today.status === 'done') {
@@ -501,6 +523,17 @@ function addTemplateItem(idx) {
   renderMenuEditor();
 }
 
+// おまかせ：やさしめのテンプレ3つで即スタート（あとで自由に編集できる）
+function quickStartMenu() {
+  const menu = Storage.getPracticeMenu();
+  [0, 1, 5].forEach(i => {
+    const t = PRACTICE_TEMPLATES[i];
+    menu.push({ id: `${Date.now()}_${i}_${Math.random().toString(36).slice(2, 5)}`, ...t });
+  });
+  Storage.setPracticeMenu(menu);
+  renderPractice();
+}
+
 function deleteMenuItem(id) {
   Storage.setPracticeMenu(Storage.getPracticeMenu().filter(m => m.id !== id));
   renderMenuEditor();
@@ -608,12 +641,19 @@ function closePracticeOverlay() {
 function renderDiscoveries() {
   const listEl = document.getElementById('discovery-list');
   if (!listEl) return;
-  const discs = Storage.getDiscoveries(8);
+  const all = Storage.getDiscoveries();
+  const total = all.length;
+  const countEl = document.getElementById('discovery-count');
+  if (countEl) countEl.textContent = total ? `${total}個` : '';
+  const discs = all.slice(0, 8);
   if (!discs.length) {
     listEl.innerHTML = '<p class="discovery-empty">練習のふり返りで「予想より耐えられた」や発見のひとことを記録すると、ここにたまっていくよ。</p>';
     return;
   }
-  listEl.innerHTML = discs.map(r => {
+  // 10個ごとの節目をささやかに祝う（回数のみ。内容は評価しない）
+  const milestone = (total > 0 && total % 10 === 0)
+    ? `<div class="discovery-milestone">🎉 発見が${total}個たまりました。積み重ねが力になっています。</div>` : '';
+  listEl.innerHTML = milestone + discs.map(r => {
     const d = Storage.localDateStr(r.timestamp);
     const [, m, day] = d.split('-');
     const context = r.practiceName || r.situation || r.movement || '';
@@ -659,6 +699,43 @@ function closeBreathing() {
   clearTimeout(breathTimer);
   breathTimer = null;
   document.getElementById('breathing-overlay').classList.remove('show');
+}
+
+// 呼吸で波をやり過ごせたら、その場でワンタップ記録
+function logFromBreathing(kind) {
+  closeBreathing();
+  quickLog(kind);
+}
+
+// ══ 初回オンボーディング（3枚・スキップ可） ══════════
+let obStep = 1;
+
+function startOnboarding() {
+  obStep = 1;
+  updateObUi();
+  document.getElementById('onboarding-overlay').classList.add('show');
+}
+
+function obNext() {
+  if (obStep < 3) {
+    obStep++;
+    updateObUi();
+  } else {
+    finishOnboarding();
+  }
+}
+
+function updateObUi() {
+  [1, 2, 3].forEach(i => {
+    document.getElementById(`ob-step-${i}`).style.display = i === obStep ? 'flex' : 'none';
+    document.getElementById(`ob-dot-${i}`).classList.toggle('active', i === obStep);
+  });
+  document.getElementById('ob-next').textContent = obStep < 3 ? '次へ' : 'はじめる';
+}
+
+function finishOnboarding() {
+  Storage.setOnboarded();
+  document.getElementById('onboarding-overlay').classList.remove('show');
 }
 
 // ══ 履歴 ═════════════════════════════════════════════
@@ -1130,6 +1207,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initForms();
   initReminder();
   showView('home');
+
+  // 初回だけ使い方を3枚で紹介
+  if (!Storage.getOnboarded()) startOnboarding();
 
   // ストレージの永続化を要求（iOSの自動削除への保険）
   if (navigator.storage && navigator.storage.persist) {

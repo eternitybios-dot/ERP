@@ -193,6 +193,17 @@ const Storage = (() => {
     return limit ? list.slice(0, limit) : list;
   }
 
+  // ── 初回オンボーディング ──────────────────────────
+  const ONBOARD_KEY = 'ocd_onboarded';
+
+  function getOnboarded() {
+    return localStorage.getItem(ONBOARD_KEY) === '1';
+  }
+
+  function setOnboarded() {
+    localStorage.setItem(ONBOARD_KEY, '1');
+  }
+
   // ── リマインダー設定 ──────────────────────────────
   const REMINDER_KEY = 'ocd_reminder';
   const REMINDER_SHOWN_KEY = 'ocd_reminder_last_shown';
@@ -225,6 +236,7 @@ const Storage = (() => {
     getRecentPlannedDifficulties, getDiscoveries,
     getLastBackupAt, setLastBackupAt,
     getReminder, setReminder, getReminderLastShown, setReminderLastShown,
+    getOnboarded, setOnboarded,
     localDateStr, localTimeStr,
   };
 })();

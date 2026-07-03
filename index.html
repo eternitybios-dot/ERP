@@ -27,6 +27,8 @@
     </div>
     <div class="view-body scrollable">
 
+      <button class="wave-btn" onclick="openBreathing()">🌊 いま波が来てる — やり過ごす</button>
+
       <div class="score-card">
         <div class="score-label">今日の練習点</div>
         <div class="score-value">
@@ -110,7 +112,6 @@
       <div class="home-actions">
         <button class="btn btn-soft" onclick="showView('erp')">強迫（ERP）を詳しく記録</button>
         <button class="btn btn-soft" onclick="showView('hrt')">クセ（HRT）を詳しく記録</button>
-        <button class="btn btn-soft" onclick="openBreathing()">呼吸で波をやり過ごす</button>
       </div>
 
       <!-- 毎日のリマインダー -->
@@ -125,6 +126,8 @@
           📅 カレンダー通知として登録する（アプリを閉じていても確実）
         </button>
       </div>
+
+      <button type="button" class="rewatch-link" onclick="startOnboarding()">使い方をもう一度見る</button>
 
     </div>
   </div>
@@ -274,7 +277,7 @@
 
         <!-- 選んだ動きに応じた拮抗反応ガイド -->
         <div class="cr-guide" id="cr-guide" style="display:none">
-          <div class="cr-guide-title">おすすめの拮抗反応（別の動き）</div>
+          <div class="cr-guide-title">おすすめの「置き換えの動き」（拮抗反応）</div>
           <div class="cr-guide-body" id="cr-guide-body"></div>
           <button type="button" class="cr-timer-btn" id="cr-timer-btn" onclick="toggleCrTimer()">⏱ 1分キープしてみる</button>
           <div class="cr-timer-display" id="cr-timer-display" style="display:none"></div>
@@ -297,7 +300,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">拮抗反応（別の動き）はできた？</label>
+          <label class="form-label">別の動きに置き換えられた？<span class="lbl-hint">拮抗反応</span></label>
           <div class="chip-group single big" id="competing-chips">
             <div class="chip" data-value="できた">できた <small>+15</small></div>
             <div class="chip" data-value="少しできた">少しできた <small>+7</small></div>
@@ -339,6 +342,7 @@
         <input type="file" accept=".json,application/json" onchange="importBackup(this)" style="display:none">
       </label>
     </div>
+    <p class="backup-note">バックアップはこのiPhone内のファイルに保存されます。外部には送信されません。</p>
     <div class="backup-hint" id="backup-hint" style="display:none"></div>
     <div class="view-body scrollable" id="history-list"></div>
   </div>
@@ -393,7 +397,7 @@
 
       <!-- 発見ノート -->
       <div class="discovery-card">
-        <div class="checkin-title">💡 あなたの発見<span class="lbl-hint">学びの足あと</span></div>
+        <div class="checkin-title">💡 あなたの発見<span class="lbl-hint" id="discovery-count"></span></div>
         <div id="discovery-list"></div>
         <p class="discovery-note">これはお守りではなく、積み上げた学びの記録。不安なときに読み返して安心するためのものではないよ。</p>
       </div>
@@ -422,7 +426,34 @@
     <p>不快感が残っていても、成功です。</p>
     <p>記録した時点で、前進しています。</p>
   </div>
+  <button type="button" class="fb-undo" onclick="undoLastRecord(event)">まちがえて押した？ 取り消す</button>
   <p class="fb-hint">タップで閉じる</p>
+</div>
+
+<!-- 初回オンボーディング -->
+<div id="onboarding-overlay" class="overlay onboarding-overlay">
+  <div class="ob-step" id="ob-step-1">
+    <div class="ob-emoji">🌊</div>
+    <h3>不安を消すアプリでは<br>ありません</h3>
+    <p>不安や不快感は、あってOK。<br>強迫行為やクセで「反応しない練習」を<br>積み重ねるためのアプリです。</p>
+  </div>
+  <div class="ob-step" id="ob-step-2" style="display:none">
+    <div class="ob-emoji">🌱</div>
+    <h3>できたことにだけ<br>点がつきます</h3>
+    <p>減点なし。ノルマなし。比べる相手もいません。<br>点数は「ためるだけ」。<br>正確じゃなくて大丈夫です。</p>
+  </div>
+  <div class="ob-step" id="ob-step-3" style="display:none">
+    <div class="ob-emoji">👆</div>
+    <h3>まずはホームのボタンを<br>1つ押すだけ</h3>
+    <p>できたことがあったらワンタップ。<br>穏やかな日も記録できます。<br>それだけで練習が始まります。</p>
+  </div>
+  <div class="ob-dots">
+    <span class="ob-dot active" id="ob-dot-1"></span>
+    <span class="ob-dot" id="ob-dot-2"></span>
+    <span class="ob-dot" id="ob-dot-3"></span>
+  </div>
+  <button type="button" class="btn btn-primary ob-next" id="ob-next" onclick="obNext()">次へ</button>
+  <button type="button" class="ob-skip" onclick="finishOnboarding()">スキップ</button>
 </div>
 
 <!-- 呼吸ガイド（衝動の波をやり過ごす） -->
@@ -437,6 +468,11 @@
   <div class="breathing-caption" id="breathing-caption">鼻からゆっくり吸って、細く長く吐きます</div>
   <div class="breathing-note">これは不安を消すための道具ではなく、波に乗るための道具です</div>
   <div class="breathing-meta" id="breathing-meta">0 呼吸</div>
+  <div class="breathing-after">
+    <div class="breathing-after-label">やり過ごせたら、そのまま記録もできるよ（任意）</div>
+    <button type="button" class="btn btn-soft" onclick="logFromBreathing('resisted')">🛡️ 強迫に反応しなかった</button>
+    <button type="button" class="btn btn-soft" onclick="logFromBreathing('competing')">🔁 クセを置き換えられた</button>
+  </div>
 </div>
 
 <!-- 月1セルフチェック -->
@@ -522,11 +558,11 @@
   </button>
   <button class="nav-btn" data-view="erp">
     <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-    <span>ERP</span>
+    <span>強迫</span>
   </button>
   <button class="nav-btn" data-view="hrt">
     <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
-    <span>HRT</span>
+    <span>クセ</span>
   </button>
   <button class="nav-btn" data-view="history">
     <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
