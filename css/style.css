@@ -20,7 +20,11 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* {
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* ダブルタップ拡大を無効化（スクロール・タップは通常どおり） */
+}
 
 /* iOS 26のWebKitバグ対策：スタンドアロン時にレイアウトビューポートが
    画面下端より手前で終わり、fixed要素の下に帯が出る。
@@ -273,7 +277,7 @@ body::before {
 .p-chips { margin-bottom: 4px; }
 .p-insight {
   width: 100%; background: var(--card); border: 1.5px solid var(--line);
-  border-radius: 12px; padding: 13px; font-size: 15px; color: var(--text);
+  border-radius: 12px; padding: 13px; font-size: 16px; color: var(--text);
   font-family: inherit; outline: none; margin-bottom: 20px; min-height: 48px;
 }
 .p-insight:focus { border-color: rgba(13,148,136,0.45); }
@@ -463,7 +467,7 @@ body::before {
 /* Memo */
 .memo-input {
   width: 100%; background: var(--card); border: 1.5px solid var(--line);
-  border-radius: 12px; padding: 12px; font-size: 15px; color: var(--text);
+  border-radius: 12px; padding: 12px; font-size: 16px; color: var(--text);
   font-family: inherit; resize: none; outline: none; line-height: 1.5;
 }
 .memo-input:focus { border-color: rgba(13,148,136,0.45); }
