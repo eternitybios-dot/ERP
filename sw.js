@@ -1,4 +1,4 @@
-const CACHE = 'hannou-v22';
+const CACHE = 'hannou-v23';
 const ASSETS = [
   './',
   './index.html',
