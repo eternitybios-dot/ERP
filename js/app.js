@@ -1,3 +1,10 @@
+// 日本語を文節単位で改行させる（BudouX）。冪等なので繰り返し呼んで安全。
+function decorateJp() {
+  if (window.JpWrap) {
+    requestAnimationFrame(() => window.JpWrap.decorate(document.body));
+  }
+}
+
 // ══ ビュー切り替え ═══════════════════════════════════
 function showView(name) {
   const view = document.getElementById('view-' + name);
@@ -15,6 +22,7 @@ function showView(name) {
   if (name === 'hrt') { recordType = 'tic'; updateQuickFill(); }
   if (name === 'history') renderHistory();
   if (name === 'graph') { Chart.render(); renderCheckin(); renderDiscoveries(); }
+  decorateJp();
 }
 
 // ══ ホーム ═══════════════════════════════════════════
@@ -163,6 +171,7 @@ function showCrGuide(movement) {
   const box = document.getElementById('cr-guide');
   document.getElementById('cr-guide-body').textContent = CR_GUIDES[movement] || CR_GUIDES['その他'];
   box.style.display = 'block';
+  decorateJp();
 }
 
 function selectedChips(id) {
@@ -235,6 +244,7 @@ function showFeedback(record) {
     msgEl.innerHTML = '<p>不快感が残っていても、成功です。</p><p>記録した時点で、前進しています。</p>';
   }
   fb.classList.add('show');
+  decorateJp();
   if (navigator.vibrate) navigator.vibrate(30);
   clearTimeout(feedbackTimer);
   feedbackTimer = setTimeout(closeFeedback, 3200);
@@ -405,6 +415,7 @@ function suggestedItem() {
 function renderPractice() {
   const card = document.getElementById('practice-card');
   if (!card) return;
+  setTimeout(decorateJp, 0);
   const menu = Storage.getPracticeMenu();
   const today = Storage.getPracticeToday();
 
@@ -444,6 +455,7 @@ function renderPractice() {
       <button type="button" class="practice-link" onclick="swapPractice()">べつの練習にする</button>
       <button type="button" class="practice-link" onclick="openMenuEditor()">メニューを編集</button>
     </div>`;
+  decorateJp();
 }
 
 function passPractice() {
@@ -471,6 +483,7 @@ function swapPractice() {
 function openMenuEditor() {
   renderMenuEditor();
   document.getElementById('menu-overlay').classList.add('show');
+  decorateJp();
 }
 
 function closeMenuEditor() {
@@ -501,6 +514,7 @@ function renderMenuEditor() {
           ＋ ${esc(t.name)} <small>（${esc(t.difficulty)}）</small>
         </button>`).join('')
     : '';
+  decorateJp();
 }
 
 function addMenuItem() {
@@ -571,6 +585,7 @@ function startPractice() {
   document.getElementById('p-insight').value = '';
   showPracticeStep(1);
   document.getElementById('practice-overlay').classList.add('show');
+  decorateJp();
 }
 
 function showPracticeStep(n) {
@@ -593,6 +608,7 @@ function practiceStep(n) {
     clearInterval(pTimerId);
     pTimerId = setInterval(() => { pElapsed++; updatePracticeTimer(); }, 1000);
     showPracticeStep(2);
+    decorateJp();
   } else if (n === 3) {
     clearInterval(pTimerId);
     pTimerId = null;
@@ -675,6 +691,7 @@ function openBreathing() {
   breathCount = 0;
   document.getElementById('breathing-meta').textContent = '0 呼吸';
   document.getElementById('breathing-overlay').classList.add('show');
+  decorateJp();
   runBreathPhase('inhale');
 }
 
@@ -716,6 +733,7 @@ function openContract() {
   document.getElementById('contract-intro').style.display = introSeen ? 'none' : 'flex';
   setContractMainVisible(introSeen);
   document.getElementById('contract-overlay').classList.add('show');
+  decorateJp();
 }
 
 function setContractMainVisible(v) {
@@ -758,6 +776,7 @@ function startOnboarding() {
   obStep = 1;
   updateObUi();
   document.getElementById('onboarding-overlay').classList.add('show');
+  decorateJp();
 }
 
 function obNext() {
@@ -1083,6 +1102,7 @@ function openCheckin() {
     });
   });
   document.getElementById('checkin-overlay').classList.add('show');
+  decorateJp();
 }
 
 function saveCheckinAnswers() {

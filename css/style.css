@@ -48,9 +48,10 @@ html, body {
 
 body {
   background: var(--bg);
-  /* 日本語の折り返し：禁則処理を厳密にし、単語の途中で不自然に割らない */
-  word-break: normal;
-  overflow-wrap: break-word;
+  /* 日本語の折り返し：BudouXが文節境界にゼロ幅スペースを挿入するので、
+     keep-all でその境界（と句読点）でだけ改行させ、単語の途中で割らない */
+  word-break: keep-all;
+  overflow-wrap: break-word; /* 極端に長い連続文字だけは折り返して溢れを防ぐ */
   line-break: strict;
   text-wrap: pretty; /* 行末の孤立文字（1文字だけ次行）を抑制 */
 }

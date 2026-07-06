@@ -1,9 +1,10 @@
-const CACHE = 'hannou-v23';
+const CACHE = 'hannou-v24';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './css/style.css',
+  './js/budoux.js',
   './js/app.js',
   './js/storage.js',
   './js/scoring.js',
