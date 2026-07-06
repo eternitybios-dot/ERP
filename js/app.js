@@ -22,7 +22,7 @@ function renderHome() {
   const recs = Storage.getToday();
   const score = recs.reduce((s, r) => s + r.score, 0);
   const wins = recs.filter(r =>
-    r.planned === true ||
+    r.planned === true || r.type === 'contract' ||
     r.reaction === 'しなかった' || r.competing === 'できた' || r.competing === '少しできた' ||
     (r.type === 'compulsion' && Array.isArray(r.bonuses) && r.bonuses.length > 0)
   ).length;
@@ -225,7 +225,9 @@ function showFeedback(record) {
     `<div class="fb-item"><span class="fb-label">${esc(label)}</span><span class="fb-pts">+${pts}</span></div>`
   ).join('');
   const msgEl = fb.querySelector('.feedback-msgs');
-  if (record.type === 'calm') {
+  if (record.type === 'contract') {
+    msgEl.innerHTML = '<p>不完全なまま、戻れました。</p><p>気持ち悪さが残っていても、それが成功です。</p>';
+  } else if (record.type === 'calm') {
     msgEl.innerHTML = '<p>穏やかな日も、大切な記録です。</p><p>経過がより正確に見えるようになります。</p>';
   } else if (record.expectancy === '予想より耐えられた') {
     msgEl.innerHTML = '<p>「思ったより大丈夫だった」——</p><p>この発見が、脳の予測を書き換えていきます。</p>';
@@ -707,6 +709,48 @@ function logFromBreathing(kind) {
   quickLog(kind);
 }
 
+// ══ 数の契約をしない練習 ═════════════════════════════
+// 数・時間・達成度・不安の増減は一切扱わない。土俵から降りる“その場の杖”。
+function openContract() {
+  const introSeen = Storage.getContractIntroSeen();
+  document.getElementById('contract-intro').style.display = introSeen ? 'none' : 'flex';
+  setContractMainVisible(introSeen);
+  document.getElementById('contract-overlay').classList.add('show');
+}
+
+function setContractMainVisible(v) {
+  ['.contract-mantra', '.contract-guide', '.contract-caution', '.contract-actions']
+    .forEach(sel => {
+      const el = document.querySelector('#contract-overlay ' + sel);
+      if (el) el.style.display = v ? '' : 'none';
+    });
+}
+
+function dismissContractIntro() {
+  Storage.setContractIntroSeen();
+  document.getElementById('contract-intro').style.display = 'none';
+  setContractMainVisible(true);
+}
+
+function closeContract() {
+  document.getElementById('contract-overlay').classList.remove('show');
+}
+
+function logContract(outcome) {
+  const rec = {
+    id: `${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+    timestamp: new Date().toISOString(),
+    type: 'contract',
+    outcome, // 'dropped' | 'stopped'
+    memo: '',
+    score: 0,
+  };
+  rec.score = Scoring.calculate(rec);
+  Storage.save(rec);
+  closeContract();
+  showFeedback(rec);
+}
+
 // ══ 初回オンボーディング（3枚・スキップ可） ══════════
 let obStep = 1;
 
@@ -761,6 +805,7 @@ function renderHistory() {
       const [, m, d] = date.split('-');
       const rows = recs.slice().reverse().map(r => {
         if (r.planned) return plannedEntry(r);
+        if (r.type === 'contract') return contractEntry(r);
         if (r.type === 'calm') return calmEntry(r);
         if (r.type === 'tic') return ticEntry(r);
         return compulsionEntry(r);
@@ -837,6 +882,20 @@ function plannedEntry(r) {
       </div>
       ${detail ? `<div class="entry-detail">${detail}</div>` : ''}
       ${r.insight ? `<div class="entry-memo">💡 ${esc(r.insight)}</div>` : ''}
+    </div>`;
+}
+
+function contractEntry(r) {
+  const label = r.outcome === 'dropped' ? '契約せず戻れた' : 'やり直さず終了できた';
+  return `
+    <div class="history-entry">
+      <div class="entry-top">
+        <span class="entry-time">${esc(Storage.localTimeStr(r.timestamp))}</span>
+        <span class="tag tag-t">数の契約</span>
+        <span class="entry-reaction good-lav">${esc(label)}</span>
+        <span class="entry-score lav">+${esc(r.score)}</span>
+        ${delBtn(r.id)}
+      </div>
     </div>`;
 }
 

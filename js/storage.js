@@ -204,6 +204,14 @@ const Storage = (() => {
     localStorage.setItem(ONBOARD_KEY, '1');
   }
 
+  const CONTRACT_INTRO_KEY = 'ocd_contract_intro';
+  function getContractIntroSeen() {
+    return localStorage.getItem(CONTRACT_INTRO_KEY) === '1';
+  }
+  function setContractIntroSeen() {
+    localStorage.setItem(CONTRACT_INTRO_KEY, '1');
+  }
+
   // ── リマインダー設定 ──────────────────────────────
   const REMINDER_KEY = 'ocd_reminder';
   const REMINDER_SHOWN_KEY = 'ocd_reminder_last_shown';
@@ -236,7 +244,7 @@ const Storage = (() => {
     getRecentPlannedDifficulties, getDiscoveries,
     getLastBackupAt, setLastBackupAt,
     getReminder, setReminder, getReminderLastShown, setReminderLastShown,
-    getOnboarded, setOnboarded,
+    getOnboarded, setOnboarded, getContractIntroSeen, setContractIntroSeen,
     localDateStr, localTimeStr,
   };
 })();

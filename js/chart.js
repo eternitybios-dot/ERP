@@ -2,7 +2,7 @@ const Chart = (() => {
 
   // 「ブレイブ行動」＝強迫に反応しなかった・確認等をしなかった / クセを置き換えられた / 計画練習に取り組んだ
   function isWin(r) {
-    return r.planned === true ||
+    return r.planned === true || r.type === 'contract' ||
       r.reaction === 'しなかった' || r.competing === 'できた' || r.competing === '少しできた' ||
       (r.type === 'compulsion' && Array.isArray(r.bonuses) && r.bonuses.length > 0);
   }

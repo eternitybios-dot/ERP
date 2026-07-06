@@ -83,6 +83,14 @@ test('ワンタップ「確認・安心探しをしなかった」 → 21点', (
   }), 21);
 });
 
+test('数の契約：契約せず戻れた → 16点', () => {
+  assert.equal(Scoring.calculate({ type: 'contract', outcome: 'dropped' }), 16);
+});
+
+test('数の契約：やり直さず終了できた → 13点（失敗扱いにしない）', () => {
+  assert.equal(Scoring.calculate({ type: 'contract', outcome: 'stopped' }), 13);
+});
+
 test('計画練習：取り組みだけで11点（結果に依存しない）', () => {
   assert.equal(Scoring.calculate({ type: 'compulsion', planned: true }), 11);
   assert.equal(Scoring.calculate({ type: 'tic', planned: true }), 11);
@@ -117,6 +125,8 @@ test('breakdown の合計は常に calculate と一致する', () => {
     { type: 'tic', awareness: false, competing: '出てしまった', urgePassed: false },
     { type: 'compulsion', planned: true, expectancy: '予想より耐えられた', insight: '案外いけた' },
     { type: 'tic', planned: true },
+    { type: 'contract', outcome: 'dropped' },
+    { type: 'contract', outcome: 'stopped' },
   ];
   for (const c of cases) {
     const sum = Scoring.breakdown(c).reduce((s, [, p]) => s + p, 0);

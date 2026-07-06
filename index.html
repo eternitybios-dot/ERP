@@ -28,6 +28,7 @@
     <div class="view-body scrollable">
 
       <button class="wave-btn" onclick="openBreathing()">🌊 いま波が来てる — やり過ごす</button>
+      <button class="wave-btn contract" onclick="openContract()">🔢 回数・数合わせの衝動が来た</button>
 
       <div class="score-card">
         <div class="score-label">今日の練習点</div>
@@ -428,6 +429,45 @@
   </div>
   <button type="button" class="fb-undo" onclick="undoLastRecord(event)">まちがえて押した？ 取り消す</button>
   <p class="fb-hint">タップで閉じる</p>
+</div>
+
+<!-- 数の契約をしない練習（タイマーなし・完了ボタンなし・数を扱わない） -->
+<div id="contract-overlay" class="overlay contract-overlay">
+  <button class="breathing-close" onclick="closeContract()" aria-label="閉じる">✕</button>
+
+  <!-- 初回だけの心理教育（1枚） -->
+  <div class="contract-intro" id="contract-intro" style="display:none">
+    <div class="contract-intro-emoji">🧠</div>
+    <p>潰す相手は、瞬きそのものではありません。<br><b>「決まった数を完了すれば安心できる」という脳との“契約”</b>です。</p>
+    <p>数を完成させず、不完全なまま生活に戻る——それが練習の本体です。</p>
+    <button type="button" class="btn btn-primary" onclick="dismissContractIntro()">わかった</button>
+  </div>
+
+  <div class="contract-mantra">
+    来た。<br>数えない。決めない。<br>やり直さない。<br>不完全なまま、戻る。
+  </div>
+
+  <div class="contract-guide">
+    <div class="contract-guide-label">力を抜くだけ（これも数えない・完了させない）</div>
+    <ul>
+      <li>まぶたの力をふっと抜く。自然な瞬きは、していい</li>
+      <li>顔全体の力を2割抜く</li>
+      <li>足裏の感覚に、そっと注意を置く</li>
+    </ul>
+    <div class="contract-guide-return">そして、<b>今すぐ</b>目の前のことに戻ります。</div>
+  </div>
+
+  <div class="contract-caution">これはお守りではありません。唱えて安心するためではなく、数の契約から降りる合図です。</div>
+
+  <div class="contract-actions">
+    <div class="contract-actions-label">戻れたら、記録もできます（任意）</div>
+    <button type="button" class="btn btn-primary" onclick="logContract('dropped')">
+      契約せず、そのまま戻れた
+    </button>
+    <button type="button" class="btn btn-soft" onclick="logContract('stopped')">
+      出てしまった…けど、やり直さずに終了できた
+    </button>
+  </div>
 </div>
 
 <!-- 初回オンボーディング -->

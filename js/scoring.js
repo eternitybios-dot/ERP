@@ -55,8 +55,20 @@ const Scoring = (() => {
     return score;
   }
 
+  // 数の契約（回数・数合わせの衝動）：数えない・完了させない。両方とも「勝ち」に加点。
+  // 何回やったか・不安が下がったかは一切扱わない（測定の儀式化を防ぐ）。
+  const CONTRACT_SCORES = {
+    'dropped': 15, // 契約に乗らず、不完全なまま戻れた
+    'stopped': 12, // 出てしまったが、やり直さずにそこで終了できた
+  };
+
+  function calcContract(record) {
+    return 1 + (CONTRACT_SCORES[record.outcome] || 0);
+  }
+
   function calculate(record) {
     if (record.type === 'calm') return 1;         // 穏やかな日の記録（欠測と区別するため）
+    if (record.type === 'contract') return calcContract(record);
     if (record.planned) {
       let score = 1 + PRACTICE_BONUS;
       if (record.expectancy === '予想より耐えられた') score += EXPECTANCY_BONUS;
@@ -82,6 +94,12 @@ const Scoring = (() => {
   function breakdown(record) {
     if (record.type === 'calm') {
       return [['穏やかな一日を記録できた', 1]];
+    }
+    if (record.type === 'contract') {
+      const items = [['記録できた', 1]];
+      if (record.outcome === 'dropped') items.push(['数の契約に乗らず、戻れた', 15]);
+      else if (record.outcome === 'stopped') items.push(['やり直さずに、そこで終了できた', 12]);
+      return items;
     }
     if (record.planned) {
       const items = [['記録できた', 1], ['計画した練習に取り組めた', PRACTICE_BONUS]];
