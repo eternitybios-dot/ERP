@@ -822,8 +822,29 @@ button, .chip, .nav-btn, .slider {
 .nav-btn span { position: relative; font-size: 10.5px; font-weight: 600; }
 .nav-btn.active { color: var(--teal-deep); }
 
+/* ── 練習の足あと（2値ドット・量は比べない） ─────── */
+.footprint-card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 18px; padding: 16px;
+}
+.footprint-dots {
+  display: flex; justify-content: space-between;
+  gap: 2px; padding: 6px 2px 2px;
+}
+.fp-day { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; min-width: 0; }
+.fp-dot {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: #e9e5da; /* 記録なし＝中立色。警告色は使わない */
+}
+.fp-dot.on {
+  background: linear-gradient(180deg, #2dd4bf, #0d9488);
+  box-shadow: 0 1px 4px rgba(13,148,136,0.35);
+}
+.fp-lbl { font-size: 9px; color: var(--sub); white-space: nowrap; min-height: 12px; }
+.footprint-note { margin-top: 10px; font-size: 11px; color: #9aa0ad; line-height: 1.7; }
+
 /* ── カード共通の仕上げ ──────────────────────────── */
 .milestone-card, .week-card, .checkin-card, .discovery-card,
-.reminder-card, .menu-item, .contract-guide {
+.reminder-card, .menu-item, .contract-guide, .footprint-card {
   box-shadow: var(--shadow-sm);
 }

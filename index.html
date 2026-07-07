@@ -388,12 +388,18 @@
       <div class="stats-grid">
         <div class="stat-item"><span class="stat-num" id="practice-days">0</span><span class="stat-lbl">練習した日</span></div>
         <div class="stat-item"><span class="stat-num" id="cur-streak">0</span><span class="stat-lbl">連続（1日休みOK）</span></div>
-        <div class="stat-item"><span class="stat-num" id="best-day">0</span><span class="stat-lbl">最高の1日</span></div>
+        <div class="stat-item"><span class="stat-num" id="total-points">0</span><span class="stat-lbl">累計ポイント</span></div>
+      </div>
+
+      <!-- 練習の足あと（やったか・やってないかの2値のみ。量は比べない） -->
+      <div class="footprint-card">
+        <div class="checkin-title">👣 練習の足あと<span class="lbl-hint">直近14日</span></div>
+        <div class="footprint-dots" id="footprint-dots"></div>
+        <p class="footprint-note">1タップでも記録した日は●。量では比べません。忙しい日は1回で十分。</p>
       </div>
 
       <!-- 詳細 -->
       <div class="section-label">直近7日</div>
-      <div class="chart-wrap"><canvas id="chart-scores"></canvas></div>
       <div class="chart-wrap"><canvas id="chart-reactions"></canvas></div>
 
       <!-- 発見ノート -->

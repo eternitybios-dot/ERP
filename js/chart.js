@@ -233,21 +233,35 @@ const Chart = (() => {
     }
     set('week-msg', msg);
 
-    // 小カード
+    // 小カード（累計ポイント＝減らない数字。日同士を比べる「最高の1日」は廃止）
     set('practice-days', Object.keys(byDay).length);
     set('cur-streak', Storage.getStreakDays());
-    const best = Object.values(byDay).reduce((m, d) => Math.max(m, d.points), 0);
-    set('best-day', best);
+    set('total-points', all.reduce((s, r) => s + (r.score || 0), 0));
 
-    // 直近7日の詳細棒グラフ
+    // 練習の足あと：記録したか/してないかの2値のみ（量の濃淡は付けない）
+    const fp = document.getElementById('footprint-dots');
+    if (fp) {
+      let html = '';
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const did = !!byDay[Storage.localDateStr(d)];
+        const showLbl = i === 13 || i === 0;
+        html += `
+          <div class="fp-day">
+            <span class="fp-dot${did ? ' on' : ''}"></span>
+            <span class="fp-lbl">${showLbl ? `${d.getMonth() + 1}/${d.getDate()}` : ''}</span>
+          </div>`;
+      }
+      fp.innerHTML = html;
+    }
+
+    // 直近7日の棒グラフ（ブレイブ回数のみ）
     const last7 = Storage.getLast7Days();
     const dates = Object.keys(last7).sort();
     const labels = dates.map(d => { const [, m, day] = d.split('-'); return `${parseInt(m)}/${parseInt(day)}`; });
-    const points = dates.map(d => last7[d].reduce((s, r) => s + r.score, 0));
     const wins = dates.map(d => last7[d].filter(isWin).length);
-    const c1 = document.getElementById('chart-scores');
     const c2 = document.getElementById('chart-reactions');
-    if (c1) drawBars(c1, labels, points, '#0d9488', '日別の練習点');
     if (c2) drawBars(c2, labels, wins, '#8b5cf6', '反応しなかった・置き換えた回数');
   }
 
