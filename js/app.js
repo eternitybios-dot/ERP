@@ -5,6 +5,15 @@ function decorateJp() {
   }
 }
 
+// スライダーの左側を値に応じて色で満たす（現在値が一目で分かる）
+function paintSlider(slider) {
+  if (!slider) return;
+  const max = Number(slider.max) || 10;
+  const pct = (Number(slider.value) / max) * 100;
+  const color = slider.classList.contains('lav') ? '#8b5cf6' : '#14b8a6';
+  slider.style.background = `linear-gradient(to right, ${color} ${pct}%, #e7e3d8 ${pct}%)`;
+}
+
 // ══ ビュー切り替え ═══════════════════════════════════
 function showView(name) {
   const view = document.getElementById('view-' + name);
@@ -112,7 +121,11 @@ function initForms() {
   [['discomfort-slider', 'discomfort-value'], ['urge-slider', 'urge-value'],
    ['tic-urge-slider', 'tic-urge-value'], ['p-predict', 'p-predict-val']].forEach(([s, v]) => {
     const slider = document.getElementById(s);
-    slider.addEventListener('input', () => { document.getElementById(v).textContent = slider.value; });
+    slider.addEventListener('input', () => {
+      document.getElementById(v).textContent = slider.value;
+      paintSlider(slider);
+    });
+    paintSlider(slider);
   });
 
   // チップ（単一・複数）＋アクセシビリティ
@@ -282,7 +295,7 @@ function resetForms() {
   ['discomfort', 'urge', 'tic-urge'].forEach(n => {
     const s = document.getElementById(`${n}-slider`);
     const v = document.getElementById(`${n}-value`);
-    if (s) { s.value = 5; v.textContent = '5'; }
+    if (s) { s.value = 5; v.textContent = '5'; paintSlider(s); }
   });
   document.querySelectorAll('.record-form .chip.selected').forEach(c => {
     c.classList.remove('selected');
@@ -337,7 +350,7 @@ function setSlider(name, val) {
   if (val == null) return;
   const s = document.getElementById(`${name}-slider`);
   const v = document.getElementById(`${name}-value`);
-  if (s) { s.value = val; v.textContent = val; }
+  if (s) { s.value = val; v.textContent = val; paintSlider(s); }
 }
 function setSingle(groupId, val) {
   document.querySelectorAll(`#${groupId} .chip`).forEach(c => {
@@ -578,6 +591,7 @@ function startPractice() {
   // リセット
   document.getElementById('p-predict').value = 5;
   document.getElementById('p-predict-val').textContent = '5';
+  paintSlider(document.getElementById('p-predict'));
   document.querySelectorAll('#p-expectancy .chip').forEach(c => {
     c.classList.remove('selected');
     c.setAttribute('aria-pressed', 'false');
