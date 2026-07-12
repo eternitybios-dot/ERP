@@ -193,6 +193,108 @@ const Storage = (() => {
     return limit ? list.slice(0, limit) : list;
   }
 
+  // ── バックアップ復元時の検証・正規化 ──────────────
+  // 壊れた/改変されたJSONを読んでも、NaN合計や表示停止が起きないようにする
+  const RECORD_TYPES = ['compulsion', 'tic', 'calm', 'contract'];
+  const TIERS = ['やさしい', 'ふつう', 'チャレンジ'];
+
+  function cleanStr(v, max) {
+    return typeof v === 'string' ? v.slice(0, max) : '';
+  }
+  function cleanNum(v, min, max) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return null;
+    return Math.min(max, Math.max(min, Math.round(n)));
+  }
+  function cleanStrArr(v, maxItems, maxLen) {
+    if (!Array.isArray(v)) return [];
+    return v.filter(x => typeof x === 'string').slice(0, maxItems).map(x => x.slice(0, maxLen));
+  }
+
+  function sanitizeRecords(list) {
+    if (!Array.isArray(list)) return [];
+    const out = [];
+    for (const r of list.slice(0, 20000)) {
+      if (!r || typeof r !== 'object') continue;
+      if (typeof r.id !== 'string' || !r.id) continue;
+      if (typeof r.timestamp !== 'string' || isNaN(new Date(r.timestamp).getTime())) continue;
+      const rec = {
+        id: r.id.slice(0, 60),
+        timestamp: r.timestamp.slice(0, 40),
+        type: RECORD_TYPES.includes(r.type) ? r.type : 'compulsion',
+        memo: cleanStr(r.memo, 100),
+      };
+      if (r.planned) {
+        rec.planned = true;
+        rec.practiceName = cleanStr(r.practiceName, 60);
+        rec.difficulty = TIERS.includes(r.difficulty) ? r.difficulty : 'ふつう';
+        rec.predicted = cleanNum(r.predicted, 0, 10);
+        rec.insight = cleanStr(r.insight, 30);
+        rec.practiceSeconds = cleanNum(r.practiceSeconds, 0, 86400) ?? 0;
+        rec.expectancy = cleanStr(r.expectancy, 20) || null;
+      } else if (rec.type === 'compulsion') {
+        rec.discomfortLevel = cleanNum(r.discomfortLevel, 0, 10);
+        rec.urgeLevel = cleanNum(r.urgeLevel, 0, 10);
+        rec.situation = cleanStr(r.situation, 20) || 'その他';
+        rec.triggers = cleanStrArr(r.triggers, 10, 20);
+        rec.reaction = cleanStr(r.reaction, 20) || null;
+        rec.enduranceTime = cleanStr(r.enduranceTime, 10) || '0秒';
+        rec.expectancy = cleanStr(r.expectancy, 20) || null;
+        rec.bonuses = cleanStrArr(r.bonuses, 5, 30);
+      } else if (rec.type === 'tic') {
+        rec.movement = cleanStr(r.movement, 30) || 'その他';
+        rec.urgeLevel = cleanNum(r.urgeLevel, 0, 10);
+        rec.awareness = !!r.awareness;
+        rec.competing = cleanStr(r.competing, 10) || '出てしまった';
+        rec.urgePassed = !!r.urgePassed;
+      } else if (rec.type === 'contract') {
+        rec.outcome = r.outcome === 'stopped' ? 'stopped' : 'dropped';
+      }
+      // 点数：数値ならそのまま（過去ルールで付いた点を尊重）、壊れていれば再計算
+      const score = Number(r.score);
+      rec.score = (Number.isFinite(score) && score >= 0 && score <= 500)
+        ? Math.round(score)
+        : (typeof Scoring !== 'undefined' ? Scoring.calculate(rec) : 1);
+      out.push(rec);
+    }
+    return out;
+  }
+
+  function sanitizeCheckins(list) {
+    if (!Array.isArray(list)) return [];
+    const out = [];
+    for (const c of list.slice(0, 500)) {
+      if (!c || typeof c.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(c.date)) continue;
+      const answers = Array.isArray(c.answers)
+        ? c.answers.slice(0, 10).map(a => cleanNum(a, 0, 4) ?? 0)
+        : [];
+      const t = Number(c.total);
+      out.push({
+        date: c.date,
+        answers,
+        total: Number.isFinite(t)
+          ? Math.min(99, Math.max(0, Math.round(t)))
+          : answers.reduce((s, v) => s + v, 0),
+      });
+    }
+    return out;
+  }
+
+  function sanitizePracticeMenu(list) {
+    if (!Array.isArray(list)) return [];
+    const out = [];
+    for (const m of list.slice(0, 200)) {
+      if (!m || typeof m.id !== 'string' || typeof m.name !== 'string' || !m.name.trim()) continue;
+      out.push({
+        id: m.id.slice(0, 60),
+        name: m.name.slice(0, 60),
+        difficulty: TIERS.includes(m.difficulty) ? m.difficulty : 'ふつう',
+        type: m.type === 'tic' ? 'tic' : 'compulsion',
+      });
+    }
+    return out;
+  }
+
   // ── 初回オンボーディング ──────────────────────────
   const ONBOARD_KEY = 'ocd_onboarded';
 
@@ -245,6 +347,7 @@ const Storage = (() => {
     getLastBackupAt, setLastBackupAt,
     getReminder, setReminder, getReminderLastShown, setReminderLastShown,
     getOnboarded, setOnboarded, getContractIntroSeen, setContractIntroSeen,
+    sanitizeRecords, sanitizeCheckins, sanitizePracticeMenu,
     localDateStr, localTimeStr,
   };
 })();

@@ -95,9 +95,9 @@ function quickLog(kind) {
       awareness: true, competing: '出てしまった', urgePassed: false };
   } else if (kind === 'calm') {
     record = { ...base, type: 'calm' };
-  } else { // backtolife
+  } else { // backtolife（反応の有無は問わない＝実態とのズレを作らない。+21）
     record = { ...base, type: 'compulsion', discomfortLevel: null, urgeLevel: null,
-      situation: 'その他', triggers: [], reaction: 'しなかった', enduranceTime: '0秒',
+      situation: 'その他', triggers: [], reaction: null, enduranceTime: '0秒',
       bonuses: ['不快なまま生活に戻れた'] };
   }
   record.score = Scoring.calculate(record);
@@ -995,6 +995,7 @@ function importBackup(input) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
+      if (typeof e.target.result !== 'string' || e.target.result.length > 5000000) throw 0;
       const parsed = JSON.parse(e.target.result);
       let records, checkins = [];
       if (Array.isArray(parsed)) {
@@ -1005,7 +1006,10 @@ function importBackup(input) {
       } else {
         throw 0;
       }
-      if (!records.every(r => r && r.id && r.timestamp)) throw 0;
+      // 検証・正規化（型・範囲・文字数。壊れた点数は再計算）
+      records = Storage.sanitizeRecords(records);
+      checkins = Storage.sanitizeCheckins(checkins);
+      if (!records.length && !checkins.length) throw 0;
 
       const existing = Storage.getAll();
       const ids = new Set(existing.map(r => r.id));
@@ -1015,7 +1019,7 @@ function importBackup(input) {
 
       const exC = Storage.getCheckins();
       const cDates = new Set(exC.map(c => c.date));
-      const addedC = checkins.filter(c => c && c.date && !cDates.has(c.date));
+      const addedC = checkins.filter(c => !cDates.has(c.date));
       if (addedC.length) {
         Storage.setCheckins([...exC, ...addedC].sort((a, b) => a.date.localeCompare(b.date)));
       }
@@ -1024,7 +1028,7 @@ function importBackup(input) {
       if (!Array.isArray(parsed) && Array.isArray(parsed.practiceMenu)) {
         const exM = Storage.getPracticeMenu();
         const mIds = new Set(exM.map(m => m.id));
-        const addedM = parsed.practiceMenu.filter(m => m && m.id && m.name && !mIds.has(m.id));
+        const addedM = Storage.sanitizePracticeMenu(parsed.practiceMenu).filter(m => !mIds.has(m.id));
         if (addedM.length) Storage.setPracticeMenu([...exM, ...addedM]);
       }
 
@@ -1203,7 +1207,7 @@ function updateReminderUi() {
   btn.style.display = '';
   btn.textContent = s.enabled ? 'オフにする' : 'オンにする';
   status.textContent = s.enabled
-    ? `毎日 ${s.time} にお知らせします。アプリを完全に閉じていると届かないことがあるので、確実にしたいときは下のカレンダー通知を併用してください。`
+    ? `アプリを開いている間は、毎日 ${s.time} にお知らせします。完全に閉じていると届かないため、確実にしたいときは下のカレンダー通知を併用してください。`
     : '1日1回だけ、そっとお知らせします。義務ではありません。';
 }
 

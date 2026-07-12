@@ -240,6 +240,56 @@ test('getDiscoveries は期待違反 or 学びメモのみ・新しい順', () =
   assert.equal(d[1].id, 'd1');
 });
 
+test('sanitizeRecords: ゴミ・id/timestamp欠損・不正型を弾く', () => {
+  localStorage.clear();
+  const S = load('storage.js', 'Storage');
+  const dirty = [
+    null, 42, 'str', {},
+    { id: 'ok1', timestamp: isoDaysAgo(1), type: 'compulsion', reaction: 'しなかった', score: 16 },
+    { id: 'no-ts', type: 'compulsion' },
+    { timestamp: isoDaysAgo(0) },
+    { id: 'bad-ts', timestamp: 'not-a-date' },
+    { id: 'bad-type', timestamp: isoDaysAgo(0), type: 'evil', score: 5 },
+  ];
+  const out = S.sanitizeRecords(dirty);
+  assert.equal(out.length, 2);
+  assert.equal(out[0].id, 'ok1');
+  assert.equal(out[1].type, 'compulsion'); // 不明typeはcompulsionに正規化
+});
+
+test('sanitizeRecords: 壊れた点数は再計算・範囲外は丸め・文字数制限', () => {
+  localStorage.clear();
+  const S = load('storage.js', 'Storage');
+  const out = S.sanitizeRecords([{
+    id: 'x', timestamp: isoDaysAgo(0), type: 'compulsion',
+    reaction: 'しなかった', enduranceTime: '0秒', bonuses: [],
+    score: 'NaNですけど', discomfortLevel: 999, memo: 'あ'.repeat(500),
+    triggers: ['汚染感', 123, 'x'.repeat(100)],
+  }]);
+  assert.equal(out[0].score, 16);            // Scoringで再計算
+  assert.equal(out[0].discomfortLevel, 10);  // 0〜10に丸め
+  assert.equal(out[0].memo.length, 100);
+  assert.equal(out[0].triggers.length, 2);   // 数値は除外
+});
+
+test('sanitizeCheckins / sanitizePracticeMenu の正規化', () => {
+  localStorage.clear();
+  const S = load('storage.js', 'Storage');
+  const cs = S.sanitizeCheckins([
+    { date: '2026-07-02', answers: [1, 9, -3], total: 'zzz' },
+    { date: 'bad' }, null,
+  ]);
+  assert.equal(cs.length, 1);
+  assert.equal(cs[0].total, 1 + 4 + 0); // 丸めたanswersから再計算
+  const ms = S.sanitizePracticeMenu([
+    { id: 'm1', name: 'テスト', difficulty: '爆難', type: 'weird' },
+    { id: 'm2' }, 'junk',
+  ]);
+  assert.equal(ms.length, 1);
+  assert.equal(ms[0].difficulty, 'ふつう');
+  assert.equal(ms[0].type, 'compulsion');
+});
+
 test('checkin の保存・取得', () => {
   localStorage.clear();
   const S = load('storage.js', 'Storage');
